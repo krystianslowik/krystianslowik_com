@@ -13,7 +13,7 @@ const Contact = () => {
               Krystian Słowik
             </span>
           </h2>
-
+          <span className="text-gray-300">me@krystianslowik.com</span>
           <form>
             <div class="mt-8 space-y-4">
               <div>
@@ -23,8 +23,9 @@ const Contact = () => {
                 <div class="relative">
                   <input
                     type="text"
+                    disabled
                     id="hs-cover-with-gradient-form-name-1"
-                    class="py-3 ps-11 pe-4 block w-full bg-white/[.03] border-white/20 text-white placeholder:text-white rounded-md text-sm focus:border-white/30 focus:ring-white/30 sm:p-4 sm:ps-11"
+                    class="cursor-not-allowed py-3 ps-11 pe-4 block w-full bg-white/[.03] border-white/20 text-white placeholder:text-white rounded-md text-sm focus:border-white/30 focus:ring-white/30 sm:p-4 sm:ps-11"
                     placeholder="Your name"
                   />
                   <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none z-20 ps-4">
@@ -52,8 +53,9 @@ const Contact = () => {
                 <div class="relative">
                   <input
                     type="email"
+                    disabled
                     id="hs-cover-with-gradient-form-email-1"
-                    class="py-3 ps-11 pe-4 block w-full bg-white/[.03] border-white/20 text-white placeholder:text-white rounded-md text-sm focus:border-white/30 focus:ring-white/30 sm:p-4 sm:ps-11"
+                    class="cursor-not-allowed py-3 ps-11 pe-4 block w-full bg-white/[.03] border-white/20 text-white placeholder:text-white rounded-md text-sm focus:border-white/30 focus:ring-white/30 sm:p-4 sm:ps-11"
                     placeholder="Email address"
                   />
                   <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none z-20 ps-4">
@@ -74,7 +76,8 @@ const Contact = () => {
               <div class="grid">
                 <button
                   type="submit"
-                  class="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-white/10 border border-transparent font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all text-sm sm:p-4"
+                  disabled
+                  class="cursor-not-allowed disabled py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-white/10 border border-transparent font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all text-sm sm:p-4"
                 >
                   Contact me
                   <svg
