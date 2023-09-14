@@ -1,0 +1,32 @@
+name: Build and Deploy to krystianslowik.com
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18.x"
+
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+
+      - name: Install and Build
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy to Server
+        env:
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+        run: |
+          sshpass -p $DEPLOY_PASSWORD rsync -r -e 'ssh -o StrictHostKeyChecking=no -p 40022' build/ serwer225080@serwer225080.lh.pl:/home/platne/serwer225080/public_html/krystianslowik.com
