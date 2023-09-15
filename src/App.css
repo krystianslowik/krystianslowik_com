@@ -36,3 +36,19 @@
     transform: rotate(360deg);
   }
 }
+.animate-blink {
+  animation: blink-animation 0.9s ease-in infinite;
+}
+
+@keyframes blink-animation {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
