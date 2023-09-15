@@ -30,8 +30,8 @@ const ChatResponse = () => {
           </g>
         </svg>
         <span class="w-full px-5">
-          Chat is in development phase. <br />
-          <span className="font-bold">Try reach me via mail instead!</span>
+          Chat isn't available yet. <br />
+          <span className="font-bold">Try reach me via @ instead!</span>
         </span>
         <svg
           class="w-4 h-4 ml-2"
