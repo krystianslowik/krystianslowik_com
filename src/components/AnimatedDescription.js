@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 
 const AnimatedDescription = () => {
   const messages = [
-    "Curious about me? Just ask!",
-    "Need help from me? I'm sure my AI assistant will help!",
+    "Curious about me? Just. Do. It!",
+    "Need help from me? Put some question in the chat!",
     "Want to collaborate? Let's talk!",
-    "Looking for my projects? Ask below!",
+    "Looking for my projects? I'm waiting below!",
     "Got questions? Fire away!",
     "Looking for my mail? Go ahead, ask!",
   ];
@@ -64,7 +64,7 @@ const AnimatedDescription = () => {
       timer = setTimeout(() => {
         setShowCursor(false);
         setAction("remove");
-      }, 2500);
+      }, 3500);
     }
     return () => clearTimeout(timer);
   }, [action]);
