@@ -46,7 +46,7 @@ export default function Chat() {
   };
 
   return (
-    <form>
+    <form onSubmit={(e) => e.preventDefault()}>
       <div className="mt-4 space-y-4 ">
         <div className="grid">
           <ChatResponse chat={chat} />
