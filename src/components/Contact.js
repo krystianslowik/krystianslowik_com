@@ -26,14 +26,14 @@ const Contact = () => {
           <Chat />
         </div>
       </main>
-      <footer className="absolute bottom-0 inset-x-0 text-center py-5">
+      {/* <footer className="absolute bottom-0 inset-x-0 text-center py-5">
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-sm text-white/50">
             &copy;{currentYear} krystianslowik.com{" "}
             <span className="text-gray-400/40 ">(v{version})</span>
           </p>
         </div>
-      </footer>
+      </footer> */}
     </>
   );
 };
