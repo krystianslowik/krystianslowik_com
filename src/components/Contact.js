@@ -1,9 +1,9 @@
 import React from "react";
-import ChatButton from "./ChatButton";
 import ChatInput from "./ChatInput";
 import ChatResponse from "./ChatResponse";
 import AnimatedDescription from "./AnimatedDescription";
 import packageJson from "../../package.json";
+import Chat from "./Chat";
 
 const Contact = () => {
   const currentYear = new Date().getFullYear();
@@ -23,15 +23,7 @@ const Contact = () => {
             </span>
           </h2>
           <AnimatedDescription />
-          <form>
-            <div className="mt-4 space-y-4 ">
-              <div className="grid">
-                <ChatResponse />
-                <ChatInput />
-                <ChatButton />
-              </div>
-            </div>
-          </form>
+          <Chat />
         </div>
       </main>
       <footer className="absolute bottom-0 inset-x-0 text-center py-5">

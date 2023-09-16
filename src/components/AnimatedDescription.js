@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 
 const AnimatedDescription = () => {
   const messages = [
-    "Curious about me? Just. Do. It!",
-    "Need help from me? Put some question in the chat!",
-    "Want to collaborate? Let's talk!",
-    "Looking for my projects? I'm waiting below!",
-    "Got questions? Fire away!",
-    "Looking for my mail? Go ahead, ask!",
+    "hey there! nice to see you",
+    "you can ask me anything there",
+    "maybe want to collaborate? ",
+    "start chatting to know more",
+    "feel free to check my socials below",
+    "all info about me know AI below",
   ];
   const [currentMessage, setCurrentMessage] = useState("");
   const [currentTokens, setCurrentTokens] = useState(["‏"]);
