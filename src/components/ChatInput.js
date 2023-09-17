@@ -22,7 +22,7 @@ const ChatInput = ({ handleChatSubmit, isBotTyping }) => {
         type="text"
         id="prompt"
         value={message}
-        placeholder={isBotTyping ? "Krystian is writing.." : placeholder}
+        placeholder={isBotTyping ? "Hmm..." : placeholder}
         onChange={handleChange}
         onKeyDown={handleKeyPress}
         className="py-3 ps-11 pe-4 block w-full bg-white/[.03] text-white placeholder:text-grey-800 rounded-t-md  border-none focus:ring-0 sm:p-4 sm:ps-11 focus:outline-none"

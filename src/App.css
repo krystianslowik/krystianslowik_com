@@ -52,7 +52,7 @@
     opacity: 1;
   }
 }
-.top-face {
+.top-fade {
   position: relative;
 }
 .top-fade::before {
@@ -61,10 +61,57 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 20px; /* adjust height as needed */
+  height: 20px;
   z-index: 9999999;
 }
 
+/* iOS not-zooming workaround */
 input {
   font-size: 16px;
+}
+
+/* Jumping dots */
+div#wave {
+  .dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    margin-right: 3px;
+    background: #9c9c9c;
+    animation: wave 0.8s linear infinite;
+
+    &:nth-child(2) {
+      animation-delay: -0.6s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: -0.4s;
+    }
+  }
+}
+
+@keyframes wave {
+  0%,
+  70%,
+  100% {
+    transform: initial;
+  }
+
+  30% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Hide scrollbar in chat, but keep scrollable */
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.custom-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.noise-gradient-bg {
+  background-repeat: repeat, no-repeat; /* Repeats the noise image */
 }

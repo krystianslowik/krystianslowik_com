@@ -2,14 +2,49 @@ import React, { useState, useEffect } from "react";
 
 const AnimatedDescription = () => {
   const messages = [
-    "hey there! nice to see you",
-    "you can ask me anything there",
-    "maybe want to collaborate? ",
-    "start chatting to know more",
-    "feel free to check my socials below",
-    "all info about me know AI below",
+    "hey, hola, salut, ciao, privet",
+    "this chat knows me quite well",
+    "feel free to speak any language",
+    "want to collaborate? DM me",
+    "get in touch for a chat",
+    "see my socials listed below",
+    "need more info? just ask",
+    "have a project in mind?",
+    "email me for more details",
+    "find me also on LinkedIn",
+    "tech savvy? so am I, really",
+    "you can check out my GitHub",
+    "I'm also on Twitter",
+    "love coding? me too",
+    "go ahead, ask me anything",
+    "let's connect sometime soon",
+    "need tech support? I'm here",
+    "DMs are open for collabs",
+    "feel free to ping me",
+    "what's currently on your mind?",
+    "here for any technical help",
+    "questions? feel free to ask",
+    "I'm all ears for you",
+    "coding queries? just ask",
+    "here to assist you anytime",
+    "how may I assist you today?",
+    "tech issues? just ask me",
+    "interested in web tech?",
+    "curious? feel free to ask",
+    "need some quick tips? ask",
+    "want to know more? ask",
+    "any questions you have?",
+    "like web tech? so do I",
+    "here to guide you always",
+    "always open for inquiries",
+    "chat's multilingual here",
+    "reach out if you need to",
+    "I'm your go-to tech guide",
+    "ready to start chatting?",
+    "how can I best assist?",
   ];
-  const [currentMessage, setCurrentMessage] = useState("");
+
+  const [currentMessage, setCurrentMessage] = useState(".");
   const [currentTokens, setCurrentTokens] = useState(["‏"]);
   const [messageIndex, setMessageIndex] = useState(0);
   const [action, setAction] = useState("add");
@@ -43,7 +78,7 @@ const AnimatedDescription = () => {
         timer = setTimeout(() => removeTokens(index - 1), randomTime);
       } else {
         setAction("add");
-        setMessageIndex((prevIndex) => (prevIndex + 1) % messages.length);
+        setMessageIndex(Math.floor(Math.random() * messages.length));
       }
     };
 
