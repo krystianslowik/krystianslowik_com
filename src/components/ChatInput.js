@@ -3,16 +3,13 @@ import ChatButton from "./ChatButton";
 
 const ChatInput = ({ handleChatSubmit, isBotTyping }) => {
   const [message, setMessage] = useState("");
-  const [placeholder, setPlaceholder] = useState("Type there...");
-  // isBotTyping
-  //   ? setPlaceholder((prev) => "AI is replying...")
-  //   : setPlaceholder((prev) => "Type there...");
+  const [placeholder] = useState("Type there...");
   const handleChange = (e) => {
     setMessage(e.target.value);
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
+    if (message.length !== 0 && e.key === "Enter") {
       e.preventDefault();
       handleChatSubmit(message);
       setMessage("");

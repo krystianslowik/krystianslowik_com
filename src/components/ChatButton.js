@@ -10,7 +10,7 @@ const ChatButton = ({ handleChatSubmit, disabled }) => {
         disabled && "cursor-not-allowed"
       } py-3 px-4 inline-flex justify-center items-center gap-2 rounded-b-md bg-white/30 border border-transparent font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all text-sm sm:p-4`}
     >
-      Chat
+      Send
       <svg
         className="w-3 h-3"
         width="16"
