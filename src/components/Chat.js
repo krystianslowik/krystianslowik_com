@@ -25,7 +25,7 @@ export default function Chat() {
         },
       ]);
       setIsBotTyping(false);
-    }, 2000);
+    }, 3500);
   }, []);
   const handleChatSubmit = async (message) => {
     console.log("Button clicked. Waiting for API.");
