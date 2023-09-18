@@ -4,8 +4,13 @@ import ChatInput from "./ChatInput";
 import { openai } from "../API/openaiConfig";
 import ChatResponse from "./ChatResponse";
 import InfoBox from "./InfoBox";
+import messageBot from "../assets/messageBot.mp3";
+import messageUser from "../assets/messageUser.mp3";
 
 export default function Chat() {
+  const messageBotNotification = new Audio(messageBot);
+  const messageUserNotification = new Audio(messageUser);
+
   const [chat, setChat] = useState([
     {
       type: "bot",
@@ -13,7 +18,26 @@ export default function Chat() {
     },
     { type: "user", text: "what can I ask about?" },
   ]);
+
   const [isBotTyping, setIsBotTyping] = useState(true);
+
+  const logMessageToServer = async (message, type) => {
+    try {
+      const response = await fetch("https://krystianslowik.com/logger.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_input: message, type }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to log message");
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+  };
 
   useEffect(() => {
     setTimeout(() => {
@@ -25,9 +49,21 @@ export default function Chat() {
         },
       ]);
       setIsBotTyping(false);
+      messageBotNotification
+        .play()
+        .catch((error) =>
+          console.log(
+            "First message notification audio play failed, you didn't click anything. It's okey, nobody likes unexpected 'pops'. :D"
+          )
+        );
+      logMessageToServer(chat[chat.length - 1].text, "bot");
     }, 3500);
   }, []);
+
   const handleChatSubmit = async (message) => {
+    messageUserNotification.play();
+    logMessageToServer(message, "user");
+
     console.log("Button clicked. Waiting for API.");
     setChat((prevChat) => [...prevChat, { type: "user", text: message }]);
     setIsBotTyping(true);
@@ -54,6 +90,8 @@ export default function Chat() {
     console.log("API Response:", botResponse);
     setIsBotTyping(false);
     setChat((prevChat) => [...prevChat, { type: "bot", text: botResponse }]);
+    logMessageToServer(chat[chat.length - 1].text, "bot");
+    messageBotNotification.play();
   };
 
   return (
