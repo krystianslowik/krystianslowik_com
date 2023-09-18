@@ -46,9 +46,9 @@ const ChatResponse = ({ chat, isBotTyping }) => {
             id="wave"
             className="inline-block p-3 my-2 rounded-lg text-white bg-gray-700/30 text-right mr-auto"
           >
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
+            <span className="dot"></span>
+            <span className="dot"></span>
+            <span className="dot"></span>
           </div>
         )}
         <div ref={messagesEndRef}></div>
