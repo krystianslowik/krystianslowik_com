@@ -9,7 +9,7 @@ export default function Chat() {
   const [chat, setChat] = useState([
     {
       type: "bot",
-      text: "Hey there! I am Krystian, and this is an introduction of my professional background.",
+      text: "Hey there! I am Krystian, and this is an introduction of my professional skills.",
     },
     { type: "user", text: "what can I ask about?" },
   ]);
