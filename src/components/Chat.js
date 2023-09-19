@@ -83,7 +83,7 @@ export default function Chat() {
     const completion = await openai.chat.completions.create({
       messages: conversationHistory,
       temperature: 0.5,
-      max_tokens: 256,
+      max_tokens: 512,
       model: "gpt-3.5-turbo",
       stop: ["\\"],
     });
