@@ -22,9 +22,8 @@ jobs:
 
       - name: Install and Build
         run: |
-          npm install
-          REACT_APP_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} npm run build
-          CI=false npm run build
+          npm install  
+          REACT_APP_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} CI=false npm run build
 
       - name: Deploy to Server
         env:
