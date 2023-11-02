@@ -25,21 +25,26 @@ This repository contains the source code for my personal website, a single-page 
 To get the project up and running on your local machine, follow these steps:
 
 1. Clone the repository:
-
-`git clone https://github.com/yourusername/krystianslowik.git`
-
+   ```
+   git clone https://github.com/yourusername/krystianslowik.git
+   ```
 2. Navigate to the project directory:
-
-`cd krystianslowik`
-
-3. Install the dependencies:
-
-`npm install`
-
-4. Start the development server:
-
-`npm start`
-
+   ```
+   cd krystianslowik
+   ```
+3. Create a `.env` file in the root of the project and add your OpenAI API key:
+   ```
+   REACT_APP_OPENAI_API_KEY=your_openai_api_key_here
+   ```
+   Replace `your_openai_api_key_here` with the actual API key you obtained from OpenAI.
+4. Install the dependencies:
+   ```
+   npm install
+   ```
+5. Start the development server:
+   ```
+   npm start
+   ```
 
 ## Available Scripts
 
@@ -52,7 +57,7 @@ In the project directory, you can run:
 
 ## CI/CD Pipeline
 
-The project is configured with a GitHub Actions workflow that automatically builds and deploys the application to the production server upon any push to the `main` branch.
+The project is configured with a GitHub Actions workflow that automatically builds and deploys the application to the production server upon any push to the `main` branch. The OpenAI API key is injected into the build process as an environment variable from GitHub Secrets.
 
 ## Contributing
 
@@ -60,4 +65,4 @@ Contributions are welcome! Please feel free to submit a pull request or create a
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is open source and available under the [MIT License](https://opensource.org/license/mit/).
