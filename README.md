@@ -1,5 +1,6 @@
 
 # Krystian Słowik - Personal Website
+[![Build and Deploy to krystianslowik.com](https://github.com/krystianslowik/krystianslowik/actions/workflows/deploy.yml/badge.svg)](https://github.com/krystianslowik/krystianslowik/actions/workflows/deploy.yml)
 
 This repository contains the source code for my personal website, a single-page React application that showcases my work and provides a platform for interactive communication using a chat feature powered by the OpenAI API.
 
