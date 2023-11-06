@@ -4,6 +4,8 @@
 
 This repository contains the source code for my personal website, a single-page React application that showcases my work and provides a platform for interactive communication using a chat feature powered by the OpenAI API.
 
+![krystianslowik.com](https://krystianslowik.com/assets/page.png)
+
 ## Technology Stack
 
 - **Frontend:** React.js
