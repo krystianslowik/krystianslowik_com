@@ -16,6 +16,8 @@ code {
     monospace;
 }
 
-* {
-  /* border: 0.1px solid white; */
+@media (max-height: 900px) {
+  .hide-on-height {
+    display: none;
+  }
 }

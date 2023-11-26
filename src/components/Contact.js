@@ -2,10 +2,12 @@ import React from "react";
 import AnimatedDescription from "./AnimatedDescription";
 // import packageJson from "../../package.json";
 import Chat from "./Chat";
+import ProfilePicture from "./ProfilePicture";
 
 const Contact = () => {
   // const currentYear = new Date().getFullYear();
   // const { version } = packageJson;
+  const imageUrl = "profile.png";
 
   return (
     <>
@@ -15,6 +17,8 @@ const Contact = () => {
         className="relative px-1 sm:px-6 lg:px-8 flex flex-col justify-center items-center w-full h-screen bg-gradient-to-tl from-gray-900 via-gray-800 to-gray-900"
       >
         <div className="text-center py-8 px-4 sm:px-6 lg:px-8">
+          <ProfilePicture imageUrl={imageUrl} />
+
           <h2 className="mt-1 sm:mt-3 text-4xl font-bold text-white sm:text-6xl">
             <span
               className="bg-clip-text bg-gradient-to-tr from-blue-400 to-purple-600 text-transparent"
