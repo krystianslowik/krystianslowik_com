@@ -29,7 +29,7 @@ To get the project up and running on your local machine, follow these steps:
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/krystianslowik.git
+   git clone https://github.com/krystianslowik/krystianslowik.git
    ```
 2. Navigate to the project directory:
    ```
