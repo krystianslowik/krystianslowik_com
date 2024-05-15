@@ -30,13 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $log_data = [
                 'timestamp' => date('Y-m-d H:i:s'),
                 'user_ip' => $user_ip,
-                'user_agent' => htmlspecialchars(getUserAgent(), ENT_QUOTES, 'UTF-8'),
-                'type' => htmlspecialchars($type, ENT_QUOTES, 'UTF-8'),
-                'user_input' => htmlspecialchars($user_input, ENT_QUOTES, 'UTF-8')
+                'user_agent' => htmlspecialchars(mb_convert_encoding(getUserAgent(), 'UTF-8', 'auto'), ENT_QUOTES, 'UTF-8'),
+                'type' => htmlspecialchars(mb_convert_encoding($type, 'UTF-8', 'auto'), ENT_QUOTES, 'UTF-8'),
+                'user_input' => htmlspecialchars(mb_convert_encoding($user_input, 'UTF-8', 'auto'), ENT_QUOTES, 'UTF-8')
             ];
 
             // Convert the array to a JSON object with pretty print
-            $log_json = json_encode($log_data, JSON_PRETTY_PRINT);
+            $log_json = json_encode($log_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
             // Log the JSON object to a file
             $log_file = fopen("user_input_log.json", "a");
