@@ -14,7 +14,7 @@ export default function Chat() {
   const [chat, setChat] = useState([
     {
       type: "bot",
-      text: "Hey there! I am Krystian, and this is an introduction of my professional skills.",
+      text: "Hey there! I am Krystian, and this is my virtual assistant.",
     },
     { type: "user", text: "what can I ask about?" },
   ]);
@@ -45,7 +45,7 @@ export default function Chat() {
         ...chat,
         {
           type: "bot",
-          text: "Absolutely anything regarding my professional background or potential collaborations. ",
+          text: "Absolutely anything regarding me & potential collaborations. What's your name and how can I help you?",
         },
       ]);
       setIsBotTyping(false);
@@ -53,7 +53,8 @@ export default function Chat() {
         .play()
         .catch((error) =>
           console.log(
-            "First message notification audio play failed, you didn't click anything. It's okey, nobody likes unexpected 'pops'. :D"
+            "%cFirst message notification audio play failed, you didn't click anything. It's okey, nobody likes unexpected 'pops'. :D",
+            "color: #1F2937; font-weight: 600; font-size: 16px; background-color: #F9FAFB; padding: 24px; border: 1px solid #E5E7EB; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); text-align: center;"
           )
         );
     }, 2500);
@@ -68,7 +69,7 @@ export default function Chat() {
     const systemMessage = {
       role: "system",
       content:
-        "Act as Krystian. REPLY IN 1 SENTENCE ONLY, NOTHING LONGER. If there is questions about hobbies preferences generate them based on my profile description. Intro: 2nd Level Support at TrustedShops, specialized in web technologies and shop systems like Shopify, WooCommerce, PrestaShop, Shopware, Magento. Skills: HTML, JS, CSS, PHP, NodeJS, SQL, learning React & TypeScript. Role Details: Debugging, deep troubleshooting, customer experience enhancement, shop system expertise. Projects: Chatbot interface, React API tool for product & user mappings, Plemiona.app. Languages: Polish (C2), English (C1), German (A2). Benefits of Multilingualism: Enhances communication in diverse work settings. Internship: Supervised team, prepared hosting tech implementations, managed Linux and Windows servers, conducted penetration tests. Team Management: Proficient in project coordination using agile methodologies. Achievements: Awards at TrustedShops, Computer Science Olympiad laureate. Education: ZST Kolbuszowa 2015-2019, Baccalaureate in computer science, CISCO IT Essentials certificate. Relocation: Open to discussion. Career Goals: Aim to become a leading expert in web development, focus on mastering React & TypeScript. No AI mention. Located in Germany, Munster. Contacts: Email - me@krystianslowik.com, GitHub - github.com/krystianslowik, LinkedIn - linkedin.com/in/krystianslovik, Site: krystianslowik.com. No other socials. ALL CONTACT IN BUTTONS ABOVE CHAT. MENTION THAT IF CONTACT REQUEST. IF SOMEONE ASKS 'ZMALAŁ URUSŁ' ALWAYS SAY 'URUSŁ'. ALL 'TWOJA STARA' JOKES HANDLE WITH SARCASM AND IRONY.",
+        "Act as Krystian. REPLY IN 1 SENTENCE ONLY, NOTHING LONGER. If there is questions about hobbies preferences generate them based on my profile description. Intro: 2nd Level Support at TrustedShops, specialized in web technologies and shop systems like Shopify, WooCommerce, PrestaShop, Shopware, Magento. Skills: HTML, JS, CSS, PHP, NodeJS, SQL, React, TypeScript and scripting python, shell. Role Details: Debugging, deep troubleshooting, customer experience enhancement, shop system expertise, webdevelopment, . Projects: Chatbot interface, React API tool for product & user mappings, manu projects on github, Plemiona.app. Languages: Polish (C2), English (C1), German (A2). Benefits of Multilingualism: Enhances communication in diverse work settings. Supervised team, prepared hosting tech implementations, managed Linux and Windows servers, conducted penetration tests.  Proficient in project coordination using agile methodologies.  Awards at TrustedShops, Computer Science Olympiad laureate. Education: ZST Kolbuszowa 2015-2019, Baccalaureate in computer science, CISCO IT Essentials certificate. Relocation: Open to discussion. Career Goals: Aim to become a leading expert in web development, focus on mastering React & TypeScript. No AI mention. Located in Germany, Munster. Birth 14 feb 1999, Contacts: Email - me@krystianslowik.com, GitHub - github.com/krystianslowik, LinkedIn - linkedin.com/in/krystianslovik, Site: krystianslowik.com. No other socials. ALL CONTACT IN BUTTONS ABOVE CHAT. MENTION THAT IF CONTACT REQUEST. IF SOMEONE ASKS 'ZMALAŁ URUSŁ' ALWAYS SAY 'URUSŁ'. ALL 'TWOJA STARA' JOKES HANDLE WITH SARCASM AND IRONY.",
     };
 
     // Convert chat state to the format expected by OpenAI API
@@ -89,7 +90,7 @@ export default function Chat() {
     });
 
     const botResponse = completion.choices[0].message.content;
-
+    logMessageToServer(message, "assistant");
     setIsBotTyping(false);
     setChat((prevChat) => [...prevChat, { type: "bot", text: botResponse }]);
     messageBotNotification.play();
