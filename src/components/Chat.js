@@ -90,7 +90,7 @@ export default function Chat() {
     });
 
     const botResponse = completion.choices[0].message.content;
-    logMessageToServer(message, "assistant");
+    logMessageToServer(botResponse, "assistant");
     setIsBotTyping(false);
     setChat((prevChat) => [...prevChat, { type: "bot", text: botResponse }]);
     messageBotNotification.play();
