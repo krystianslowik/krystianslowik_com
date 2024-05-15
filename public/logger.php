@@ -8,11 +8,6 @@ function getUserAgent() {
     return $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
 }
 
-// Function to get referrer
-function getReferrer() {
-    return $_SERVER['HTTP_REFERER'] ?? 'Direct';
-}
-
 // Check if the request is a POST request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get the raw POST data
@@ -34,13 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Create an array to hold the log data
             $log_data = [
                 'timestamp' => date('Y-m-d H:i:s'),
-                'user_input' => htmlspecialchars($user_input, ENT_QUOTES, 'UTF-8'),
                 'user_ip' => $user_ip,
-                'type' => htmlspecialchars($type, ENT_QUOTES, 'UTF-8'),
                 'user_agent' => htmlspecialchars(getUserAgent(), ENT_QUOTES, 'UTF-8'),
-                'referrer' => htmlspecialchars(getReferrer(), ENT_QUOTES, 'UTF-8'),
-                'request_method' => $_SERVER['REQUEST_METHOD'],
-                'request_uri' => $_SERVER['REQUEST_URI']
+                'type' => htmlspecialchars($type, ENT_QUOTES, 'UTF-8'),
+                'user_input' => htmlspecialchars($user_input, ENT_QUOTES, 'UTF-8')
             ];
 
             // Convert the array to a JSON object with pretty print
