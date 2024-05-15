@@ -3,6 +3,16 @@
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
 
+// Function to get user agent details
+function getUserAgent() {
+    return $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+}
+
+// Function to get referrer
+function getReferrer() {
+    return $_SERVER['HTTP_REFERER'] ?? 'Direct';
+}
+
 // Check if the request is a POST request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get the raw POST data
@@ -26,17 +36,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'timestamp' => date('Y-m-d H:i:s'),
                 'user_input' => htmlspecialchars($user_input, ENT_QUOTES, 'UTF-8'),
                 'user_ip' => $user_ip,
-                'type' => htmlspecialchars($type, ENT_QUOTES, 'UTF-8')
+                'type' => htmlspecialchars($type, ENT_QUOTES, 'UTF-8'),
+                'user_agent' => htmlspecialchars(getUserAgent(), ENT_QUOTES, 'UTF-8'),
+                'referrer' => htmlspecialchars(getReferrer(), ENT_QUOTES, 'UTF-8'),
+                'request_method' => $_SERVER['REQUEST_METHOD'],
+                'request_uri' => $_SERVER['REQUEST_URI']
             ];
 
-            // Convert the array to a JSON object
-            $log_json = json_encode($log_data);
+            // Convert the array to a JSON object with pretty print
+            $log_json = json_encode($log_data, JSON_PRETTY_PRINT);
 
             // Log the JSON object to a file
             $log_file = fopen("user_input_log.json", "a");
             if ($log_file) {
                 if (flock($log_file, LOCK_EX)) {
-                    fwrite($log_file, $log_json . "\n");
+                    fwrite($log_file, $log_json . ",\n");
                     flock($log_file, LOCK_UN);
                     fclose($log_file);
                     http_response_code(200);
