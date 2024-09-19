@@ -29,10 +29,10 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p ${{ vars.PORT }} krystianslowik.com >> ~/.ssh/known_hosts
 
-      - name: Deploy to Server
+      - name: Deploy to Server using SCP
         env:
           REMOTE_PATH: ${{ vars.REMOTE_PATH }}
           USERNAME: ${{ vars.USERNAME }}
           PORT: ${{ vars.PORT }}
         run: |
-          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -p $PORT" build/ $USERNAME@krystianslowik.com:$REMOTE_PATH
+          scp -r -P $PORT -o StrictHostKeyChecking=no build/* $USERNAME@krystianslowik.com:$REMOTE_PATH
