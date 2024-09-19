@@ -105,10 +105,10 @@ const AnimatedDescription = () => {
   }, [action]);
 
   return (
-    <span className="text-gray-300 h-1">
-      {currentMessage}
-      {showCursor && <span className="animate-blink"> ▌</span>}
-    </span>
+      <p className="mt-4 text-lg sm:text-xl max-w-xl mx-auto text-gray-600 italic">
+        {currentMessage}
+        <span className="animate-blink"> ▌</span>
+      </p>
   );
 };
 

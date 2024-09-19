@@ -6,25 +6,26 @@ const InfoBox = () => {
   const { version } = packageJson;
 
   return (
-    <div className="flex justify-center items-center text-gray-400/50 text-xs my-4 w-full">
-      <span>
-        By clicking "Send" you accept{" "}
-        <a
+      <div className="p-4 bg-gray-50 text-center text-gray-500 text-xs border-t border-gray-200">
+    <span>
+      By clicking "<span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400 font-bold">➔</span>" you accept our{" "}
+      <a
           href="/Privacy_Policy.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:underline"
-        >
-          Privacy Policy
-        </a>
-        . <br />
-        <b>Conversation is stored </b>for training purposes. <br />
-        <div className="mt-3 text-gray-400/30">
-          &copy;{` ${currentYear} v${version}`}
-        </div>
-      </span>
-    </div>
+          className="hover:bg-clip-text hover:text-transparent hover:bg-gradient-to-r from-blue-500 to-teal-400 font-bold"
+      >
+        Privacy Policy
+      </a>
+      .<br />
+      <strong>Conversation is stored</strong> for training purposes.
+      <div className="mt-2 text-gray-400">
+        &copy; {` ${new Date().getFullYear()} v${version}`}
+      </div>
+    </span>
+      </div>
   );
+
 };
 
 export default InfoBox;
