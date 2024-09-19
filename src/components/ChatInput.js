@@ -1,8 +1,9 @@
 // ChatInput.js
-import React, {useState} from "react";
+import React, { useState, useRef, useEffect } from "react";
 
-const ChatInput = ({handleChatSubmit, isBotTyping}) => {
+const ChatInput = ({ handleChatSubmit, isBotTyping }) => {
     const [message, setMessage] = useState("");
+    const inputRef = useRef(null); // Reference to the input element
 
     const handleChange = (e) => setMessage(e.target.value);
 
@@ -10,8 +11,16 @@ const ChatInput = ({handleChatSubmit, isBotTyping}) => {
         if (message.trim()) {
             handleChatSubmit(message.trim());
             setMessage("");
+            if (inputRef.current) {
+                inputRef.current.focus(); // Automatically focus the input after sending
+            }
         }
     };
+    useEffect(() => {
+        if (!isBotTyping && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isBotTyping]);
 
     const handleKeyPress = (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -20,9 +29,17 @@ const ChatInput = ({handleChatSubmit, isBotTyping}) => {
         }
     };
 
+    // Optional: Focus the input on component mount
+    useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, []);
+
     return (
         <div className="flex border-t border-gray-200 bg-white rounded-b-md overflow-hidden">
             <input
+                ref={inputRef} // Attach the ref to the input element
                 type="text"
                 value={message}
                 placeholder={
@@ -38,7 +55,7 @@ const ChatInput = ({handleChatSubmit, isBotTyping}) => {
                 disabled={!message.trim() || isBotTyping}
                 className={`flex items-center justify-center px-6 py-3 text-white transition-filter duration-300 ${
                     !message.trim() || isBotTyping
-                        ? " filter blur-xl"
+                        ? "filter blur-xl"
                         : "filter blur-0"
                 }`}
             >
@@ -48,7 +65,6 @@ const ChatInput = ({handleChatSubmit, isBotTyping}) => {
             </button>
         </div>
     );
-
 };
 
 export default ChatInput;

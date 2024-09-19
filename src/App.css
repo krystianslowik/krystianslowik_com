@@ -115,3 +115,157 @@ div#wave {
 .noise-gradient-bg {
   background-repeat: repeat, no-repeat; /* Repeats the noise image */
 }
+/* Animated Gradient Border for Assistant's Messages */
+.animated-border-wrapper {
+  position: relative;
+  padding: 1px; /* Adjust the padding to control border thickness */
+  border-radius: 0.6rem; /* Match the border radius of the inner div */
+  background: linear-gradient(
+          45deg,
+          #3b82f6, /* blue-500 */
+          #1d4ed8, /* blue-700 */
+          #14b8a6, /* teal-600 */
+          #0d9488  /* teal-700 */
+  );
+  background-size: 300% 300%;
+  animation: gradient-animation 4s ease infinite;
+}
+
+.animated-border-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: inherit;
+  background: inherit;
+  z-index: -1;
+}
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+
+/* Marker-Like Animated Border for Assistant's Messages */
+.marker-border-wrapper {
+  position: relative;
+  padding: 1px; /* Adjust the padding to control border thickness */
+  border-radius: 0.6rem; /* Match the border radius of the inner div */
+  background: linear-gradient(
+          45deg,
+          #3b82f6, /* blue-500 */
+          #1e40af, /* blue-700 */
+          #14b8a6, /* teal-600 */
+          #0d9488  /* teal-700 */
+  );
+  background-size: 400% 400%;
+  animation: gradient-border 8s ease infinite;
+  overflow: hidden;
+}
+
+.marker-border-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: inherit;
+  background: inherit;
+  z-index: -1;
+  filter: blur(4px);
+  opacity: 0.7;
+}
+
+@keyframes gradient-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Existing Animations (Ensure These Are Present) */
+@keyframes fadeInBlur {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.animate-fade-in-blur {
+  animation: fadeInBlur 0.6s ease-out forwards;
+}
+
+@keyframes slide-in {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.5s ease-out forwards;
+}
+
+
+/* Custom Scrollbar Styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f9fafb;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+  border: 2px solid #f9fafb;
+}
+
+
+/* Animated Underline */
+.underline-animation {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #14b8a6);
+  background-size: 200% 200%;
+  animation: underline-sweep 1s linear infinite;
+  margin-top: 4px;
+  border-radius: 1px;
+}
+
+@keyframes underline-sweep {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

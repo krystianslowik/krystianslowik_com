@@ -2,7 +2,7 @@ import React from "react";
 
 export default function GitHub() {
   return (
-    <svg width="24" height="24" viewBox="0 0 16 16" preserveAspectRatio="none">
+    <svg width="24" height="24" viewBox="0 0 16 16" preserveAspectRatio="none" className="hover:bg-clip-text hover:text-transparent hover:bg-gradient-to-r hover:from-blue-500 hover:to-teal-400">
       <path
         fillRule="evenodd"
         clipRule="evenodd"
