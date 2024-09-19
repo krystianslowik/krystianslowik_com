@@ -37,4 +37,4 @@ jobs:
           REMOTE_PATH: ${{ vars.REMOTE_PATH }}
           USERNAME: ${{ vars.USERNAME }}
         run: |
-          rsync -r -e 'ssh -o StrictHostKeyChecking=no -p ${{ vars.PORT }}' build/ $USERNAME@krystianslowik.com:$REMOTE_PATH
+          rsync -r --delete -e 'ssh -o StrictHostKeyChecking=no -p ${{ vars.PORT }}' build/ $USERNAME@krystianslowik.com:$REMOTE_PATH
