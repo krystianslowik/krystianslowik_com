@@ -35,4 +35,4 @@ jobs:
           USERNAME: ${{ vars.USERNAME }}
           PORT: ${{ vars.PORT }}
         run: |
-          rsync -avz --delete -e 'ssh -o StrictHostKeyChecking=no -p $PORT' build/ $USERNAME@krystianslowik.com:$REMOTE_PATH
+          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -p $PORT" build/ $USERNAME@krystianslowik.com:$REMOTE_PATH
