@@ -17,10 +17,7 @@ jobs:
         with:
           node-version: "18.x"
 
-      - name: Install sshpass
-        run: sudo apt-get install -y sshpass
-
-      - name: Install and Build
+      - name: Install Dependencies and Build
         run: |
           npm install  
           REACT_APP_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} CI=false npm run build
@@ -32,15 +29,10 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p ${{ vars.PORT }} krystianslowik.com >> ~/.ssh/known_hosts
 
-      - name: Install rsync on Remote Server
-        run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p ${{ vars.PORT }} ${{ vars.USERNAME }}@krystianslowik.com "sudo apt-get update && sudo apt-get install -y rsync"
-        # Only include if remote server allows passwordless sudo
-
       - name: Deploy to Server
         env:
           REMOTE_PATH: ${{ vars.REMOTE_PATH }}
           USERNAME: ${{ vars.USERNAME }}
           PORT: ${{ vars.PORT }}
         run: |
-          rsync -r --delete -e 'ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p $PORT' build/ $USERNAME@krystianslowik.com:$REMOTE_PATH
+          rsync -avz --delete -e 'ssh -o StrictHostKeyChecking=no -p $PORT' build/ $USERNAME@krystianslowik.com:$REMOTE_PATH
