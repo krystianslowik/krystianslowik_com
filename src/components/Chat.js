@@ -66,7 +66,7 @@ export default function Chat() {
                 messages: conversationHistory,
                 temperature: 0.7,
                 max_tokens: 512,
-                model: "gpt-3.5-turbo",
+                model: "gpt-4o",
             });
 
             const botResponse = completion.choices[0].message.content.trim();
