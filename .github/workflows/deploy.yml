@@ -25,8 +25,16 @@ jobs:
           npm install  
           REACT_APP_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} CI=false npm run build
 
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ vars.PORT }} krystianslowik.com >> ~/.ssh/known_hosts
+
       - name: Deploy to Server
         env:
-          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+          REMOTE_PATH: ${{ vars.REMOTE_PATH }}
+          USERNAME: ${{ vars.USERNAME }}
         run: |
-          sshpass -p $DEPLOY_PASSWORD rsync -r -e 'ssh -o StrictHostKeyChecking=no -p 40022' build/ serwer225080@serwer225080.lh.pl:/home/platne/serwer225080/public_html/krystianslowik.com
+          rsync -r -e 'ssh -o StrictHostKeyChecking=no -p ${{ vars.PORT }}' build/ $USERNAME@krystianslowik.com:$REMOTE_PATH
