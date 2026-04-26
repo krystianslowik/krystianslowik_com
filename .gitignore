@@ -23,3 +23,9 @@ yarn-debug.log*
 yarn-error.log*
 src/components/ChatInput.test.js
 /.idea
+
+# local-only — not part of the deployed SPA
+.claude/
+backend/
+design_base/
+CLAUDE.md
