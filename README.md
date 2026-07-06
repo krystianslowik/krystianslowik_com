@@ -4,7 +4,7 @@ Personal site and its chat backend, two independently deployed apps in one repo.
 
 | Path | What | Deploy |
 |------|------|--------|
-| root (`src/`, `public/`) | Astro 5 static site — Svelte 5 islands, Tailwind 4, MDX content | Cloudflare Workers Static Assets (`wrangler deploy`, manual) |
+| root (`src/`, `public/`) | Astro 5 static site — Svelte 5 islands, Tailwind 4, MDX content | Cloudflare, automatic on push (Pages CI builds `dist/`) |
 | `backend/` | "chat-api" — Express + TypeScript proxy for the słowik chat (OpenAI, rate limiting, optional MySQL logging) | k3s homelab via `backend/Dockerfile` + `backend/k8s/` |
 | `design/` | Interactive HTML design studies + deterministic motion sims | not built, reference only |
 

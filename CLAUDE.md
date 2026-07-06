@@ -58,7 +58,7 @@ Tuning changes go through `design/parrot-flight-sim.js` (deterministic node harn
 
 ### Deploys
 
-- Frontend: `npm run build`, then `wrangler deploy` (assets from `dist/`, 404 via Astro's 404.html). The owner deploys manually.
+- Frontend: deployed automatically by Cloudflare on push (Pages CI builds and serves `dist/`, 404 via Astro's 404.html) — there is deliberately NO GitHub Actions workflow; do not add one. `npm run build` + `wrangler deploy` remains a manual fallback.
 - Backend: build the image from `backend/Dockerfile`, push to the homelab registry, `kubectl apply -k backend/k8s/`. Secrets come from the `chat-api-secrets` Secret (see `backend/k8s/secret.example.yaml` — never commit real values).
 
 ## Conventions
