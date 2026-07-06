@@ -1,0 +1,23 @@
+---
+interface Props { scale?: number; class?: string; }
+const { scale = 3, class: cls } = Astro.props;
+---
+<canvas
+  data-slowik-mark
+  data-scale={scale}
+  class={cls}
+  style="image-rendering: pixelated; display: block;"
+  aria-hidden="true"></canvas>
+
+<script>
+  import { mountHead } from "../lib/slowik";
+  const mount = () => {
+    document.querySelectorAll<HTMLCanvasElement>("canvas[data-slowik-mark]").forEach((c) => {
+      if (c.dataset.mounted) return;
+      c.dataset.mounted = "1";
+      mountHead(c, Number(c.dataset.scale) || 3);
+    });
+  };
+  mount();
+  document.addEventListener("astro:page-load", mount);
+</script>

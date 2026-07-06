@@ -1,0 +1,48 @@
+---
+import { site } from "@data/site";
+import SectionHeading from "./SectionHeading.astro";
+const { contact } = site;
+---
+<section id="contact" class="mx-auto max-w-[1120px] px-4 py-14 sm:px-6 sm:py-20">
+  <SectionHeading index="07" title="Contact" />
+  <div class="grid gap-10 sm:grid-cols-2" data-reveal>
+    <div>
+      <p class="max-w-sm text-2xl leading-snug">{contact.blurb}</p>
+      <div class="mt-6 flex items-center gap-3">
+        <a
+          href={`mailto:${contact.email}`}
+          class="break-all font-mono text-accent underline decoration-border underline-offset-4 transition-colors hover:decoration-accent active:decoration-accent"
+        >[{contact.email}]</a>
+        <button
+          type="button"
+          class="mono-label rounded-sm border border-border px-2.5 py-1.5 transition-colors hover:border-accent/50 hover:text-accent active:bg-accent/10"
+          data-copy-btn={contact.email}
+        >copy</button>
+      </div>
+    </div>
+    <ul class="space-y-4 font-mono text-sm sm:justify-self-end">
+      {contact.socials.map((s) => (
+        <li class="flex items-center justify-between gap-8 border-b border-border pb-3">
+          <span class="text-muted">{s.label}</span>
+          <a href={s.href} target="_blank" rel="me noopener" class="inline-block py-1 transition-colors hover:text-accent active:text-accent" data-perch="rule">{s.handle} →</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<script>
+  const onClick = (e: MouseEvent) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>("[data-copy-btn]");
+    if (!btn) return;
+    navigator.clipboard?.writeText(btn.dataset.copyBtn || "");
+    const prev = btn.textContent;
+    btn.textContent = "copied";
+    btn.classList.add("text-accent", "border-accent/50");
+    setTimeout(() => {
+      btn.textContent = prev;
+      btn.classList.remove("text-accent", "border-accent/50");
+    }, 1400);
+  };
+  document.addEventListener("click", onClick);
+</script>

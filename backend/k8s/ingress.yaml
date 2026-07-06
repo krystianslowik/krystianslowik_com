@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chat-api
+  labels:
+    app: chat-api
+  annotations:
+    # Default: serve on both entrypoints so the API works before TLS is set up.
+    # Once cert-manager issues chat-api-tls (see below), switch to websecure only.
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    # Enable BOTH of the following together (annotation + tls block), otherwise
+    # Traefik serves its default self-signed cert and browsers will refuse it:
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: chat-api.krystianslowik.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: chat-api
+                port:
+                  number: 80
+  # Uncomment together with the cluster-issuer annotation above:
+  # tls:
+  #   - hosts:
+  #       - chat-api.krystianslowik.com
+  #     secretName: chat-api-tls

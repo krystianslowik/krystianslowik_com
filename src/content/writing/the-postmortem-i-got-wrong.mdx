@@ -1,0 +1,15 @@
+---
+title: The postmortem I got wrong
+blurb: I blamed a config when it was a process. Here's the rewrite, and what honest looks like.
+pubDate: 2026-02-03
+---
+
+The first version of this postmortem had a clean root cause: a bad config value,
+shipped late on a Friday. Tidy. Blameless on paper. Also wrong.
+
+The config was a symptom. The real failure was a review process that let a
+load-bearing change through without a single question. Fixing the value fixed
+nothing; the same gap produced a different incident a month later.
+
+This is the honest rewrite — and what I've changed about how I read my own
+incident reports since.

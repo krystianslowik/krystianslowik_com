@@ -1,71 +1,51 @@
+# krystianslowik.com
 
-# Krystian Słowik - Personal Website
-[![Build and Deploy to krystianslowik.com](https://github.com/krystianslowik/krystianslowik_com/actions/workflows/deploy.yml/badge.svg)](https://github.com/krystianslowik/krystianslowik_com/actions/workflows/deploy.yml)
+Personal site and its chat backend, two independently deployed apps in one repo.
 
-This repository contains the source code for my personal website, a single-page React application that showcases my work and provides a platform for interactive communication using a chat feature powered by the OpenAI API.
+| Path | What | Deploy |
+|------|------|--------|
+| root (`src/`, `public/`) | Astro 5 static site — Svelte 5 islands, Tailwind 4, MDX content | Cloudflare Workers Static Assets (`wrangler deploy`, manual) |
+| `backend/` | "chat-api" — Express + TypeScript proxy for the słowik chat (OpenAI, rate limiting, optional MySQL logging) | k3s homelab via `backend/Dockerfile` + `backend/k8s/` |
+| `design/` | Interactive HTML design studies + deterministic motion sims | not built, reference only |
 
-![krystianslowik.com](https://i.imgur.com/9rPmBKA.png)
+## The słowik
 
-## Technology Stack
+The mascot is **the słowik** (Polish for nightingale — and the surname): a 1-bit
+amber pixel bird with a real physics flight engine. One companion bird accompanies
+the whole page — it perches on section rules and cards, follows your reading line
+while you scroll, and lands on the chat wire. The chat renders the conversation as
+cards on that wire; answers come from the backend, never from the browser.
 
-- **Frontend:** React.js
-- **Styling:** Tailwind CSS with HeadlessUI and Heroicons for UI components
-- **Testing:** Jest and React Testing Library
-- **API Integration:** OpenAI for chatbot functionality
-- **Analytics:** Google Analytics with React-GA
-- **Audio:** Custom audio notifications
+Motion is tuned sim-first: `design/parrot-flight-sim.js` (flight/vertical model)
+and `design/wire-scroll-sim.js` (chat wire scroll physics) are deterministic node
+harnesses that mirror the live code — change the numbers there before touching
+`src/lib/slowikFlight.ts`, `src/lib/slowikCompanion.ts`, or the chat camera.
 
-## Project Structure
+## Principles
 
-- `src/`: The main directory for React components.
-  - `API/`: Contains OpenAI API configuration.
-  - `assets/`: Includes images, audio files, and SVG components.
-  - `components/`: React components for various UI elements.
-- `public/`: Static files for the web application.
+- No trackers, no cookies, no third-party requests: fonts are self-hosted, analytics don't exist, and the chat talks only to my own backend.
+- Static first — the only hydrated island is the chat (`SlowikChat.svelte`).
+- `prefers-reduced-motion` always degrades to a calm, static page.
+- All copy lives in `src/data/site.ts`; components render content, they don't own it.
 
-## Setup and Installation
+## Commands
 
-To get the project up and running on your local machine, follow these steps:
+Frontend (repo root):
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/krystianslowik/krystianslowik.git
-   ```
-2. Navigate to the project directory:
-   ```
-   cd krystianslowik
-   ```
-3. Create a `.env` file in the root of the project and add your OpenAI API key:
-   ```
-   REACT_APP_OPENAI_API_KEY=your_openai_api_key_here
-   ```
-   Replace `your_openai_api_key_here` with the actual API key you obtained from OpenAI.
-4. Install the dependencies:
-   ```
-   npm install
-   ```
-5. Start the development server:
-   ```
-   npm start
-   ```
+```sh
+npm run dev        # Astro dev server on :4321
+npm run build      # static build → dist/
+npm run typecheck  # astro check
+npm run preview    # serve the built site
+```
 
-## Available Scripts
+Backend (from `backend/`):
 
-In the project directory, you can run:
+```sh
+npm run dev        # tsx watch (PORT env, default 3000)
+npm run build      # tsc → dist/
+npm run typecheck  # tsc --noEmit
+```
 
-- `npm start`: Runs the app in development mode.
-- `npm test`: Launches the test runner.
-- `npm run build`: Builds the app for production.
-- `npm run eject`: Removes the single build dependency.
-
-## CI/CD Pipeline
-
-The project is configured with a GitHub Actions workflow that automatically builds and deploys the application to the production server upon any push to the `main` branch. The OpenAI API key is injected into the build process as an environment variable from GitHub Secrets.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a pull request or create an issue for any bugs or feature suggestions.
-
-## License
-
-This project is open source and available under the [MIT License](https://opensource.org/license/mit/).
+Backend config is env-only — see `backend/.env.example`. `OPENAI_API_KEY` is
+required; the server boots and serves `/chat` without a database.

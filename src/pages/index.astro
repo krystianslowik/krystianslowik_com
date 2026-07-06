@@ -1,0 +1,64 @@
+---
+import Base from "../layouts/Base.astro";
+import Nav from "@components/Nav.astro";
+import TelemetryStrip from "@components/TelemetryStrip.astro";
+import Hero from "@components/Hero.astro";
+import Now from "@components/Now.astro";
+import Work from "@components/Work.astro";
+import Experience from "@components/Experience.astro";
+import Writing from "@components/Writing.astro";
+import Stack from "@components/Stack.astro";
+import Chat from "@components/Chat.astro";
+import Contact from "@components/Contact.astro";
+import Colophon from "@components/Colophon.astro";
+import { homeSchema } from "@lib/schema";
+import { site } from "@data/site";
+---
+<Base schema={homeSchema(site.meta.title)}>
+  <Nav />
+  <TelemetryStrip />
+  <main>
+    <Hero />
+    <Now />
+    <Work />
+    <Experience />
+    <Writing />
+    <Stack />
+    <Chat />
+    <Contact />
+  </main>
+  <Colophon />
+</Base>
+
+<script>
+  // Scroll reveals via IntersectionObserver — the CSS (html.reveal-armed) does
+  // the hiding; this just adds .revealed as elements enter. Replaces GSAP+
+  // ScrollTrigger (~115 KB) with a few lines. astro:page-load fires on first
+  // load AND after every ClientRouter swap.
+  function setup() {
+    if (!document.documentElement.classList.contains("reveal-armed")) return; // reduced motion / not armed
+    const els = [...document.querySelectorAll<HTMLElement>("[data-reveal]:not(.revealed)")];
+    if (!els.length) return;
+
+    const io = new IntersectionObserver(
+      (entries, obs) => {
+        // stagger elements that enter together (e.g. everything above the fold at load)
+        let i = 0;
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const el = e.target as HTMLElement;
+          el.style.transitionDelay = `${Math.min(i++, 6) * 70}ms`;
+          el.classList.add("revealed");
+          obs.unobserve(el);
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    els.forEach((el) => io.observe(el));
+
+    // safety: reveal anything still hidden shortly after load
+    setTimeout(() => els.forEach((el) => el.classList.add("revealed")), 2000);
+  }
+
+  document.addEventListener("astro:page-load", setup);
+</script>

@@ -1,0 +1,18 @@
+---
+import { site } from "@data/site";
+import SectionHeading from "./SectionHeading.astro";
+const { stack } = site;
+---
+<section id="stack" class="mx-auto max-w-[1120px] px-4 py-14 sm:px-6 sm:py-20">
+  <SectionHeading index="05" title="Stack & numbers" meta="66 repos deep" />
+  <div class="grid gap-10 sm:grid-cols-3" data-reveal>
+    {stack.columns.map((col) => (
+      <div>
+        <p class="mono-label text-accent">{col.label}</p>
+        <ul class="mt-4 space-y-3 text-fg-2">
+          {col.lines.map((l) => <li>{l}</li>)}
+        </ul>
+      </div>
+    ))}
+  </div>
+</section>

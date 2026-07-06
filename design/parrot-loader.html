@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>parrot — full-screen loader</title>
+<style>
+  :root{ --bg:#0e0e0e; --amber:#e0992e; --muted:#7a7a7a;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+  #screen{display:block;position:fixed;inset:0}
+  #cap{position:fixed;left:0;right:0;bottom:7%;text-align:center;font-family:var(--mono);
+    font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+    display:flex;gap:10px;align-items:center;justify-content:center;user-select:none}
+  #cap .dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}
+  #cap b{color:var(--amber);font-weight:500}
+</style>
+</head>
+<body>
+<canvas id="screen"></canvas>
+<div id="cap"><span class="dot"></span><span>loading<b id="dots">&nbsp;&nbsp;&nbsp;</b></span></div>
+
+<script>
+const AMBER=[224,153,46];
+const FLY={w:56,h:108};                 // taller than the gallery so a -30 ceiling never clips
+const BASELINE=36;
+
+// ---- tuned flight parameters (baked from the live tuner) ----
+const P = { gravity:0.2, lift:0.3, vDrag:0.92, diveDrag:0.99, diveBoost:0.13, catch:0.9,
+            thrust:2, drag:0.96, beat:0.42, pitch:0.13, pitchSmooth:0.4, startFlapY:7,
+            ceiling:-30, floor:12, flapMin:2, flapMax:12 };
+function clamp(v,a,b){ return v<a?a:v>b?b:v; }
+
+// ---- sprite (identical geometry to the study) ----
+function drawFly(c,o){
+  c.clearRect(0,0,FLY.w,FLY.h);
+  c.save(); c.translate(o.dx||0, (o.dy||0)+BASELINE);
+  if(o.pitch){ c.translate(30,26); c.rotate(o.pitch); c.translate(-30,-26); }
+  c.globalCompositeOperation='source-over'; c.fillStyle='#fff';
+  c.beginPath(); c.ellipse(31,26,13,7,0,0,Math.PI*2); c.fill();                  // body
+  c.beginPath(); c.arc(15,19,8,0,Math.PI*2); c.fill();                           // head
+  c.beginPath(); c.moveTo(17,12); c.lineTo(26,9); c.lineTo(20,18); c.closePath(); c.fill();   // crest
+  c.beginPath(); c.moveTo(11,16); c.lineTo(4,18); c.lineTo(4,22); c.lineTo(7,22); c.lineTo(10,20); c.closePath(); c.fill(); // beak
+  c.beginPath(); c.moveTo(39,23); c.lineTo(52,25); c.lineTo(54,27); c.lineTo(52,29); c.lineTo(39,31); c.closePath(); c.fill(); // tail
+  let w;
+  if(o.wing==='up') w=[[25,26],[28,9],[31,1],[39,15],[35,27]];
+  else if(o.wing==='down') w=[[25,25],[29,39],[34,45],[45,33],[34,26]];
+  else w=[[25,24],[37,17],[50,18],[45,26],[34,27]];
+  c.beginPath(); c.moveTo(w[0][0],w[0][1]); for(let i=1;i<w.length;i++) c.lineTo(w[i][0],w[i][1]); c.closePath(); c.fill();
+  c.globalCompositeOperation='source-atop'; c.fillStyle='#888';                  // underside shade (1-bit dither)
+  c.beginPath(); c.moveTo(0,33); c.lineTo(56,21); c.lineTo(56,48); c.lineTo(0,48); c.closePath(); c.fill();
+  c.globalCompositeOperation='source-over';
+  c.globalCompositeOperation='destination-out'; c.lineWidth=1; c.strokeStyle='#000';
+  c.beginPath(); c.moveTo(28,24); c.lineTo(34,27); c.stroke();
+  c.beginPath(); c.moveTo(42,25); c.lineTo(52,26.4); c.moveTo(42,29); c.lineTo(52,27.6); c.stroke();
+  const bm=[(w[0][0]+w[w.length-1][0])/2,(w[0][1]+w[w.length-1][1])/2];
+  c.beginPath(); c.moveTo(w[2][0],w[2][1]); c.lineTo(bm[0],bm[1]); c.stroke();
+  if(o.eye==='closed') c.fillRect(12,17.4,6,1.4); else { c.beginPath(); c.arc(14,17.6,2.2,0,Math.PI*2); c.fill(); }
+  c.globalCompositeOperation='source-over';
+  c.restore();
+}
+
+function buildBase(o){
+  const off=document.createElement('canvas'); off.width=FLY.w; off.height=FLY.h;
+  drawFly(off.getContext('2d'),o);
+  const src=off.getContext('2d').getImageData(0,0,FLY.w,FLY.h).data;
+  const base=document.createElement('canvas'); base.width=FLY.w; base.height=FLY.h;
+  const bctx=base.getContext('2d'); const img=bctx.createImageData(FLY.w,FLY.h);
+  for(let y=0;y<FLY.h;y++)for(let x=0;x<FLY.w;x++){
+    const i=(y*FLY.w+x)*4;
+    if(src[i+3]>128){
+      if((src[i]<=200) && ((x+y)&1)) continue;        // gray -> 1-bit dither (shadow)
+      img.data[i]=AMBER[0]; img.data[i+1]=AMBER[1]; img.data[i+2]=AMBER[2]; img.data[i+3]=255;
+    }
+  }
+  bctx.putImageData(img,0,0);
+  return base;
+}
+
+// ---- behavior engine (identical to the study) ----
+const s={y:0,vy:0,wp:0,flapping:true,flapsLeft:5,glideT:0,blink:0,pitch:0,spd:3,dist:0};
+function step(){
+  s.vy += P.gravity;
+  if(s.flapping) s.vy -= P.lift;
+  else if(s.vy>0) s.vy += P.diveBoost;
+  s.vy *= (s.vy>0 ? P.diveDrag : P.vDrag);
+  s.vy = clamp(s.vy,-3,4.5);
+  s.y += s.vy;
+  if(s.flapping){
+    s.spd += P.thrust; s.wp += P.beat;
+    if(s.wp>=1){ s.wp-=1; s.flapsLeft--; if(s.flapsLeft<=0){ s.flapping=false; s.glideT=0; } }
+  } else {
+    s.glideT++;
+    if(s.y > P.startFlapY || s.glideT > 80){
+      const lo=Math.min(P.flapMin,P.flapMax), hi=Math.max(P.flapMin,P.flapMax);
+      s.vy *= P.catch; s.flapping=true; s.flapsLeft=lo+Math.floor(Math.random()*(hi-lo+1)); s.wp=0;
+    } else if(Math.random()<0.012){ s.flapping=true; s.flapsLeft=1; s.wp=0; }
+  }
+  s.spd *= P.drag; s.spd = clamp(s.spd,0.6,8); s.dist += s.spd;
+  if(s.y < P.ceiling){ s.y=P.ceiling; if(s.vy<0) s.vy*=-0.15; }
+  if(s.y > P.floor){   s.y=P.floor;   if(s.vy>0) s.vy*=-0.15; }
+  const target = clamp(-s.vy*P.pitch,-0.24,0.24);
+  s.pitch += (target - s.pitch)*P.pitchSmooth;
+  if(s.blink>0) s.blink--; else if(Math.random()<0.012) s.blink=2;
+  const o={};
+  o.dy=Math.round(s.y);
+  if(s.flapping){ const f=s.wp%1; o.wing=f<0.40?'down':f<0.65?'mid':f<0.90?'up':'mid'; } else o.wing='mid';
+  o.pitch=s.pitch; o.eye=s.blink>0?'closed':'open';
+  return o;
+}
+
+// ---- full-screen render ----
+const cv=document.getElementById('screen'), ctx=cv.getContext('2d');
+let vw=0, vh=0, dpr=1, scale=6;
+function resize(){
+  dpr=window.devicePixelRatio||1; vw=window.innerWidth; vh=window.innerHeight;
+  cv.width=vw*dpr; cv.height=vh*dpr; cv.style.width=vw+'px'; cv.style.height=vh+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.imageSmoothingEnabled=false;
+  scale=Math.max(4, Math.round(vh*0.62/FLY.h));     // band ~62% of viewport height
+}
+window.addEventListener('resize',resize); resize();
+
+let dotN=0;
+function frame(){
+  ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,vw,vh);
+  const o=step();
+  const base=buildBase(o);
+  const sW=FLY.w*scale, sH=FLY.h*scale;
+  const span=vw+sW, x=vw-(((s.dist*scale)%span));     // right -> left (forward), wrap
+  const y=(vh-sH)/2;
+  ctx.drawImage(base,0,0,FLY.w,FLY.h, x,y, sW,sH);
+  // also draw the wrap-around copy so it re-enters smoothly
+  ctx.drawImage(base,0,0,FLY.w,FLY.h, x-span,y, sW,sH);
+}
+setInterval(frame,66);
+
+// caption dots
+setInterval(()=>{ dotN=(dotN+1)%4; document.getElementById('dots').innerHTML='.'.repeat(dotN)+'&nbsp;'.repeat(3-dotN); },380);
+</script>
+</body>
+</html>

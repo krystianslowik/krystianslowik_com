@@ -1,0 +1,49 @@
+---
+// Brief branded splash: the słowik flies across while the page settles.
+// Hidden entirely for no-JS users so content is never trapped behind it.
+---
+<div
+  id="page-loader"
+  class="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-3 bg-bg"
+>
+  <canvas id="loader-canvas" class="h-40 w-full max-w-3xl" aria-hidden="true"></canvas>
+  <p class="mono-label">loading<span data-dots>&nbsp;&nbsp;&nbsp;</span></p>
+</div>
+<noscript><style>#page-loader { display: none !important; }</style></noscript>
+
+<script>
+  import { mountLoader } from "../lib/slowik";
+
+  const el = document.getElementById("page-loader");
+  const cv = document.getElementById("loader-canvas") as HTMLCanvasElement | null;
+  if (el && cv) {
+    const stop = mountLoader(cv);
+
+    let n = 0;
+    const dotsEl = el.querySelector<HTMLElement>("[data-dots]");
+    const dots = setInterval(() => {
+      n = (n + 1) % 4;
+      if (dotsEl) dotsEl.innerHTML = ".".repeat(n) + " ".repeat(3 - n);
+    }, 360);
+
+    let done = false;
+    const hide = () => {
+      if (done) return;
+      done = true;
+      clearInterval(dots);
+      el.style.transition = "opacity .3s ease";
+      el.style.opacity = "0";
+      el.style.pointerEvents = "none";
+      setTimeout(() => { stop(); el.remove(); }, 320);
+    };
+
+    const start = performance.now();
+    // Reveal on DOMContentLoaded, not window.load — the content is server-rendered
+    // and already parsed; waiting for the full resource waterfall (fonts, images)
+    // would needlessly delay LCP behind the splash.
+    const finish = () => setTimeout(hide, Math.max(0, 550 - (performance.now() - start)));
+    if (document.readyState !== "loading") finish();
+    else document.addEventListener("DOMContentLoaded", finish, { once: true });
+    setTimeout(hide, 4000); // safety: never trap the page
+  }
+</script>

@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+/* Self-hosted fonts (no render-blocking Google Fonts call — honours the site's
+   own "no trackers, no third parties" claim). Same faces the old <link> loaded:
+   JetBrains Mono 400/500/600 + Newsreader italic (variable optical size). */
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource-variable/newsreader/opsz-italic.css";
+
+/* ==========================================================================
+   Design tokens — dark engineering-minimal, ONE amber accent (OKLCH)
+   Exposed to Tailwind v4 via @theme so utilities like bg-bg / text-accent work.
+   ========================================================================== */
+@theme {
+  --color-bg: oklch(0.185 0.006 250);        /* charcoal base */
+  --color-elevated: oklch(0.215 0.006 250);  /* panels */
+  --color-border: oklch(0.30 0.006 250);     /* hairlines */
+  --color-fg: oklch(0.95 0.004 250);         /* primary text */
+  --color-fg-2: oklch(0.74 0.006 250);       /* secondary */
+  --color-muted: oklch(0.61 0.008 250);     /* muted / mono labels — L0.61 clears AA (4.9:1 bg, 4.6:1 cards), measured */
+  --color-accent: oklch(0.76 0.14 70);       /* the one amber */
+  --color-accent-hi: oklch(0.83 0.13 70);    /* hover */
+  --color-warning: oklch(0.70 0.15 40);      /* degraded only */
+
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-serif: "Newsreader Variable", "Newsreader", Georgia, "Times New Roman", serif;
+
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* Interaction grammar — ONE speed, ONE curve for every hover/press/focus
+     transition (Tailwind's transition-* utilities read these defaults).
+     Fast ease-out reads as "the UI answered", not "the UI animated". */
+  --default-transition-duration: 140ms;
+  --default-transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* clip (not hidden): kills stray horizontal scroll on small screens without
+     creating a scroll container, so position: sticky in the nav keeps working */
+  overflow-x: clip;
+  /* viewport-fit=cover (Base.astro) — keep gutters out of notch/home-bar zones */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Linear-normalized interaction feel: the arrow is the cursor for the whole
+   UI (pointer/hand on nothing — app grammar, not document grammar), taps are
+   silent (no grey iOS flash, no double-tap zoom on controls), and control
+   labels never get text-selected by a stray drag. Inputs keep the I-beam. */
+html { -webkit-tap-highlight-color: transparent; }
+a, button, [role="button"], summary, label { cursor: default; }
+a, button, [role="button"], summary { touch-action: manipulation; }
+button, summary { -webkit-user-select: none; user-select: none; }
+
+::selection { background: oklch(0.76 0.14 70 / 0.28); color: var(--color-fg); }
+
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 0.10); border-radius: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
+}
+
+/* The chat input sits inside a framed row that turns amber on :focus-within
+   (see SlowikChat) — that container border IS its focus cue. The global ring
+   above, offset inside that frame, read as an ugly double border, so suppress
+   it on the input only. Must be unlayered + ID-specificity to beat the rule
+   above (Tailwind's focus-visible:outline-none utility is in @layer utilities
+   and loses to this unlayered rule, whatever its specificity). */
+#slowik-input:focus,
+#slowik-input:focus-visible {
+  outline: none;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* Mono label — section indices "[01] now", telemetry keys */
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Long-form reading uses the serif */
+.prose { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.7; color: var(--color-fg); }
+.prose em, .prose i { font-style: italic; }
+
+/* Scroll reveals. Only ARMED (hidden) once an inline head script adds
+   .reveal-armed, and only when motion is allowed — so crawlers and no-JS
+   visitors always see every element. .reveal-fallback is a 3s failsafe. */
+html.reveal-armed [data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.55s var(--ease-out-quint), transform 0.55s var(--ease-out-quint);
+}
+html.reveal-armed [data-reveal].revealed,
+html.reveal-fallback [data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

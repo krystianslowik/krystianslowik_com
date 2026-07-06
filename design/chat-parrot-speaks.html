@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>chat concept — parrot speaks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap" rel="stylesheet" />
+<style>
+  :root{ --bg:#0e0e0e; --fg:#e6e6e6; --muted:#7a7a7a; --amber:#e0992e; --bd:#2c2c2c;
+    --mono:"JetBrains Mono",monospace; --sans:"Helvetica Neue",Arial,sans-serif; --serif:"Newsreader",Georgia,serif; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);padding:56px 24px 120px}
+  .wrap{max-width:1120px;margin:0 auto}
+  .kick{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.08em}
+  h1{font-size:40px;font-weight:700;letter-spacing:-.02em;margin:.2em 0 0}
+
+  .grid{display:grid;grid-template-columns:200px 1fr;gap:40px;margin-top:56px;align-items:start}
+  #parrot{image-rendering:pixelated;position:sticky;top:40px}
+
+  .stream{min-height:340px;display:flex;flex-direction:column;justify-content:flex-end}
+  .echoes{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+  .echo{font-family:var(--serif);font-style:italic;color:var(--muted);opacity:.35;filter:blur(.3px);font-size:15px;line-height:1.5}
+  .echo:nth-last-child(1){opacity:.55}
+  .now .q{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;margin-bottom:10px}
+  .now .q b{color:var(--amber);font-weight:500}
+  .now .a{font-family:var(--serif);font-size:23px;line-height:1.45;color:var(--fg);min-height:1.4em}
+  .now .a .cur{color:var(--amber);font-family:var(--sans)}
+
+  .bar{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);padding-bottom:8px;margin-top:34px;max-width:640px}
+  .bar .p{color:var(--amber);font-family:var(--mono)}
+  .bar input{flex:1;background:transparent;border:0;outline:0;color:var(--fg);font-family:var(--mono);font-size:14px}
+  .bar input::placeholder{color:var(--muted)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chips button{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--bd);background:transparent;border-radius:3px;padding:5px 10px;cursor:pointer}
+  .chips button:hover{color:var(--amber);border-color:#3a2e16}
+  .foot{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kick">[06] concept · the parrot speaks</p>
+  <h1>Ask the parrot</h1>
+
+  <div class="grid">
+    <canvas id="parrot"></canvas>
+    <div>
+      <div class="stream">
+        <div class="echoes" id="echoes"></div>
+        <div class="now">
+          <p class="q" id="q"></p>
+          <p class="a" id="a"></p>
+        </div>
+      </div>
+      <div class="bar"><span class="p">›</span><input id="in" placeholder="ask the parrot…" autocomplete="off" /></div>
+      <div class="chips" id="chips"></div>
+      <p class="foot">a parrot repeats, it doesn't think — verify anything load-bearing with me.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const AMBER=[224,153,46], FULL={w:40,h:46};
+function drawFull(c,o){
+  c.clearRect(0,0,FULL.w,FULL.h); c.fillStyle="#fff"; const lift=o.crestUp||0, tf=o.tailFlick||0;
+  c.beginPath(); c.ellipse(23,24,9,12,0,0,7); c.fill();
+  c.beginPath(); c.arc(18,13,9,0,7); c.fill();
+  c.beginPath(); c.moveTo(20,5); c.lineTo(32,2-lift); c.lineTo(23,13); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(17,4); c.lineTo(26,2-lift); c.lineTo(21,11); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(13,10); c.lineTo(6,12); c.lineTo(5,17); c.lineTo(9,16); c.lineTo(12,14); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(22,33); c.lineTo(33,30); c.lineTo(28+tf,46); c.lineTo(21,44); c.closePath(); c.fill();
+  c.strokeStyle="#fff"; c.lineWidth=1.6; c.beginPath(); c.moveTo(17,34); c.lineTo(17,40); c.moveTo(23,34); c.lineTo(23,40); c.stroke();
+  if(o.mouth==="open"){ c.beginPath(); c.moveTo(6,18); c.lineTo(10,18); c.lineTo(10,21); c.lineTo(7,21); c.closePath(); c.fill();
+    c.globalCompositeOperation="destination-out"; c.fillRect(5,17,7,1.1); c.globalCompositeOperation="source-over"; }
+  c.globalCompositeOperation="destination-out";
+  if(o.eye==="closed") c.fillRect(15,11.4,6,1.4); else { c.beginPath(); c.arc(17,11.6,2.2,0,7); c.fill(); }
+  c.lineWidth=1.6; c.beginPath(); c.moveTo(22,17); c.quadraticCurveTo(29,22,27,31); c.stroke();
+  c.globalCompositeOperation="source-over";
+  c.fillStyle="#fff"; c.fillRect(6,40,28,2);
+}
+function base(o){
+  const off=document.createElement("canvas"); off.width=FULL.w; off.height=FULL.h; drawFull(off.getContext("2d"),o);
+  const src=off.getContext("2d").getImageData(0,0,FULL.w,FULL.h).data;
+  const b=document.createElement("canvas"); b.width=FULL.w; b.height=FULL.h; const bc=b.getContext("2d"), img=bc.createImageData(FULL.w,FULL.h);
+  for(let y=0;y<FULL.h;y++)for(let x=0;x<FULL.w;x++){const i=(y*FULL.w+x)*4; if(src[i+3]>128){ if(src[i]<=200&&((x+y)&1))continue;
+    img.data[i]=AMBER[0];img.data[i+1]=AMBER[1];img.data[i+2]=AMBER[2];img.data[i+3]=255; }}
+  bc.putImageData(img,0,0); return b;
+}
+const SCALE=4, pc=document.getElementById("parrot"); pc.width=FULL.w*SCALE; pc.height=FULL.h*SCALE;
+const pctx=pc.getContext("2d"); pctx.imageSmoothingEnabled=false;
+let state="online", t=0;
+setInterval(()=>{ t+=66; let o;
+  if(state==="talk") o={mouth:Math.floor(t/180)%2?"open":"closed", eye:t%3000<130?"closed":"open", crestUp:1};
+  else o={eye:t%3000<130?"closed":"open", tailFlick:t%5200<260?2:0, crestUp:t%8000<420?2:0};
+  pctx.clearRect(0,0,pc.width,pc.height); pctx.drawImage(base(o),0,0,pc.width,pc.height);
+},66);
+
+const qEl=document.getElementById("q"), aEl=document.getElementById("a"), echoes=document.getElementById("echoes");
+const replies=[
+  "A pager should mean a human has to decide something right now. Everything else is a ticket — or an automation I still owe you.",
+  "k3s, not full k8s — five Talos nodes in a cupboard in Münster. It's where the bad ideas go first.",
+  "Honestly? Hire me to make your on-call boring. That is the entire pitch.",
+  "That's outside what I've parroted. Ask the real one — he answers email.",
+];
+let r=0, typing=null;
+function speak(q){
+  if(!q.trim()) return;
+  // push the finished reply into echoes
+  const prev=aEl.textContent.trim();
+  if(prev){ const e=document.createElement("div"); e.className="echo"; e.textContent="“"+prev+"”"; echoes.appendChild(e);
+    while(echoes.children.length>3) echoes.removeChild(echoes.firstChild); }
+  qEl.innerHTML="<b>you</b> · "+q;
+  aEl.textContent="";
+  clearInterval(typing);
+  const full=replies[r++%replies.length];
+  state="talk";
+  setTimeout(()=>{
+    let i=0; typing=setInterval(()=>{
+      aEl.textContent=full.slice(0,++i);
+      if(i>=full.length){ clearInterval(typing); state="online"; }
+    },20);
+  }, 650); // "rummaging" beat
+}
+const input=document.getElementById("in");
+input.addEventListener("keydown",e=>{ if(e.key==="Enter"){ speak(input.value); input.value=""; }});
+["on-call philosophy","k8s at home?","why hire you?"].forEach(ch=>{
+  const b=document.createElement("button"); b.textContent=ch; b.onclick=()=>speak(ch); document.getElementById("chips").appendChild(b);
+});
+// seed
+qEl.innerHTML="<b>you</b> · what's your on-call philosophy?";
+aEl.textContent=replies[0]; r=1;
+</script>
+</body>
+</html>
