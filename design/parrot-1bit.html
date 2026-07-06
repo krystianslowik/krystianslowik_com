@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>parrot — 1-bit study v2</title>
+<style>
+  :root{
+    --bg-base:#0e0e0e; --bg-elevated:#161616; --border:#262626;
+    --fg:#e6e6e6; --muted:#7a7a7a; --amber:#e0992e;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg-base);color:var(--fg);font-family:var(--mono);line-height:1.6;padding:48px 24px 120px}
+  .wrap{max-width:1120px;margin:0 auto}
+  h1{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 40px}
+  section{border:1px solid var(--border);background:var(--bg-elevated);border-radius:4px;padding:24px;margin-bottom:24px}
+  .label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 20px}
+  .row{display:flex;gap:40px;align-items:flex-end;flex-wrap:wrap}
+  .stack{display:flex;gap:12px;align-items:flex-end}
+  figure{margin:0}
+  figcaption{color:var(--muted);font-size:11px;margin-top:10px;text-align:center}
+  .state figcaption b{color:var(--amber);font-weight:500}
+  canvas{image-rendering:pixelated;display:block}
+  .note{color:var(--muted);font-size:12px;margin-top:18px}
+  .panelmock{max-width:540px}
+  .pm-head{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:16px;font-size:13px;letter-spacing:.06em}
+  .pm-head .name{color:var(--muted);text-transform:uppercase}
+  .pm-head .dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}
+  .pm-head .on{color:var(--amber)}
+  .pm-line{display:flex;gap:12px;margin-bottom:10px;font-size:14px}
+  .pm-line .who{color:var(--muted);width:54px;flex:none}
+  .pm-line .who.twin{color:var(--amber)}
+  #tuner{position:fixed;top:16px;right:16px;width:252px;max-height:92vh;overflow:auto;background:#121212;border:1px solid var(--border);border-radius:6px;padding:14px;z-index:50;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  #tuner .ttitle{color:var(--amber);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+  #tuner .srow{display:grid;grid-template-columns:74px 1fr 40px;align-items:center;gap:8px;margin-bottom:7px}
+  #tuner .sv{color:var(--fg);text-align:right;font-variant-numeric:tabular-nums}
+  #tuner input[type=range]{width:100%;accent-color:var(--amber)}
+  #tuner .thint{margin-top:8px;opacity:.7;line-height:1.4}
+</style>
+</head>
+<body>
+<div id="tuner"><div class="ttitle">flight tuner — live</div><div class="thint">drag to tune `fly` + `loader` in real time</div></div>
+<div class="wrap">
+  <h1>parrot — 1-bit study v2</h1>
+  <p class="sub">amber-on-charcoal · single accent · geometry→threshold→1-bit · blink @ ~3s</p>
+
+  <section>
+    <p class="label">head mark — favicon / loader / inline</p>
+    <div class="row">
+      <figure><canvas id="head_big"></canvas><figcaption>animated</figcaption></figure>
+      <div class="stack">
+        <figure><canvas id="head_16"></canvas><figcaption>16px</figcaption></figure>
+        <figure><canvas id="head_24"></canvas><figcaption>24px</figcaption></figure>
+        <figure><canvas id="head_32"></canvas><figcaption>32px</figcaption></figure>
+        <figure><canvas id="head_48"></canvas><figcaption>48px</figcaption></figure>
+      </div>
+    </div>
+    <p class="note">does it still read as a parrot at favicon size?</p>
+  </section>
+
+  <section>
+    <p class="label">motion — variants (pick per use)</p>
+    <div class="row state">
+      <figure><canvas id="m_blink"></canvas><figcaption><b>blink</b> — default rest</figcaption></figure>
+      <figure><canvas id="m_bob"></canvas><figcaption><b>bob</b> — loader / thinking</figcaption></figure>
+      <figure><canvas id="m_scan"></canvas><figcaption><b>scan</b> — listening</figcaption></figure>
+      <figure><canvas id="m_talk"></canvas><figcaption><b>talk</b> — streaming reply</figcaption></figure>
+      <figure><canvas id="m_alert"></canvas><figcaption><b>alert</b> — hover / focus</figcaption></figure>
+      <figure><canvas id="m_flap"></canvas><figcaption><b>flap</b> — easter-egg</figcaption></figure>
+      <figure><canvas id="m_nod"></canvas><figcaption><b>nod</b> — "yes"</figcaption></figure>
+      <figure><canvas id="m_shake"></canvas><figcaption><b>shake</b> — "no" / refuse</figcaption></figure>
+      <figure><canvas id="m_sleepy"></canvas><figcaption><b>sleepy</b> — drowsy idle</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <p class="label">states — sprite carries status (ties into the multi-level idea)</p>
+    <div class="row state">
+      <figure><canvas id="st_online"></canvas><figcaption><b>online</b> — idle + blink</figcaption></figure>
+      <figure><canvas id="st_degraded"></canvas><figcaption><b>degraded</b> — squawk</figcaption></figure>
+      <figure><canvas id="st_offline"></canvas><figcaption><b>offline</b> — asleep</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <p class="label">flight & full-body loader</p>
+    <div class="row state">
+      <figure><canvas id="f_fly"></canvas><figcaption><b>fly</b> — hover + flap (easter-egg)</figcaption></figure>
+      <figure><canvas id="f_hop"></canvas><figcaption><b>hop</b> — bounces on perch</figcaption></figure>
+    </div>
+    <p class="label" style="margin-top:28px">loader — parrot flies across the bar</p>
+    <figure><canvas id="f_loader"></canvas><figcaption>loading…</figcaption></figure>
+  </section>
+
+  <section>
+    <p class="label">dither variant — 1-bit shading (single ink, no second tone)</p>
+    <div class="row">
+      <figure><canvas id="dith_head"></canvas><figcaption>head</figcaption></figure>
+      <figure><canvas id="dith_full"></canvas><figcaption>perched</figcaption></figure>
+    </div>
+    <p class="note">use only if pure 1-bit feels too flat.</p>
+  </section>
+
+  <section class="panelmock">
+    <p class="label">in context</p>
+    <div class="pm-head">
+      <canvas id="ctx_mark"></canvas>
+      <span class="name">PARROT</span><span class="dot"></span><span class="on">online</span>
+    </div>
+    <div class="pm-line"><span class="who">you</span><span>what's your on-call philosophy?</span></div>
+    <div class="pm-line"><span class="who twin">parrot</span><span>a pager should mean a human has to decide right now. ask me something i don't know and i'll say so.</span></div>
+  </section>
+</div>
+
+<script>
+const AMBER=[224,153,46], DIM=[122,87,28];
+const NATIVE={ head:{w:34,h:24}, full:{w:40,h:46}, fly:{w:56,h:96} };
+
+// head mark = the SAME head as the perched sprite, just without body/tail/perch
+function drawHead(c,o){
+  c.clearRect(0,0,34,24);
+  c.save(); c.translate(o.dx||0, o.dy||0);
+  c.globalCompositeOperation='source-over'; c.fillStyle='#fff';
+  const lift=o.crestUp||0;
+  c.beginPath(); c.arc(18,13,9,0,Math.PI*2); c.fill();                           // head
+  c.beginPath(); c.moveTo(20,6); c.lineTo(32,3-lift); c.lineTo(23,13); c.closePath(); c.fill();  // crest 1
+  c.beginPath(); c.moveTo(17,5); c.lineTo(26,3-lift); c.lineTo(21,11); c.closePath(); c.fill();  // crest 2
+  c.beginPath(); c.moveTo(13,10); c.lineTo(6,12); c.lineTo(5,17); c.lineTo(9,16); c.lineTo(12,14); c.closePath(); c.fill(); // beak (short stub)
+  if(o.mouth==='open'){
+    c.beginPath(); c.moveTo(6,18); c.lineTo(10,18); c.lineTo(10,21); c.lineTo(7,21); c.closePath(); c.fill();  // small lower mandible
+    c.globalCompositeOperation='destination-out'; c.fillRect(5,17,7,1.1); c.globalCompositeOperation='source-over';
+  }
+  const ex=17+(o.eyeShift||0);
+  c.globalCompositeOperation='destination-out';
+  if(o.eye==='closed') c.fillRect(ex-2,11.4,6,1.4); else { c.beginPath(); c.arc(ex,11.6,2.2,0,Math.PI*2); c.fill(); }
+  c.globalCompositeOperation='source-over';
+  c.restore();
+}
+
+function drawFull(c,o){
+  c.clearRect(0,0,40,46);
+  c.save(); c.translate(o.dx||0, o.dy||0);
+  c.globalCompositeOperation='source-over'; c.fillStyle='#fff';
+  const lift=o.crestUp||0, tf=o.tailFlick||0;
+  c.beginPath(); c.ellipse(23,24,9,12,0,0,Math.PI*2); c.fill();                 // body
+  c.beginPath(); c.arc(18,13,9,0,Math.PI*2); c.fill();                          // head
+  c.beginPath(); c.moveTo(20,5); c.lineTo(32,2-lift); c.lineTo(23,13); c.closePath(); c.fill();  // crest 1
+  c.beginPath(); c.moveTo(17,4); c.lineTo(26,2-lift); c.lineTo(21,11); c.closePath(); c.fill();  // crest 2
+  c.beginPath(); c.moveTo(13,10); c.lineTo(6,12); c.lineTo(5,17); c.lineTo(9,16); c.lineTo(12,14); c.closePath(); c.fill(); // beak (short stub)
+  c.beginPath(); c.moveTo(22,33); c.lineTo(33,30); c.lineTo(28+tf,46); c.lineTo(21,44); c.closePath(); c.fill(); // tail (tip flick)
+  if(o.fly){
+    if(o.wing==='up'){ c.beginPath(); c.moveTo(18,20); c.lineTo(40,4); c.lineTo(52,16); c.lineTo(30,27); c.closePath(); c.fill(); }
+    else { c.beginPath(); c.moveTo(18,20); c.lineTo(44,34); c.lineTo(52,44); c.lineTo(30,25); c.closePath(); c.fill(); }
+    c.globalCompositeOperation='destination-out'; c.lineWidth=1.2; c.strokeStyle='#000';
+    c.beginPath(); c.moveTo(20,19); c.lineTo(30,27); c.stroke(); c.globalCompositeOperation='source-over';
+  } else {
+    c.strokeStyle='#fff'; c.lineWidth=1.6;
+    c.beginPath(); c.moveTo(17,34); c.lineTo(17,40); c.moveTo(23,34); c.lineTo(23,40); c.stroke(); // legs
+  }
+  if(o.mouth==='open'){
+    c.beginPath(); c.moveTo(6,18); c.lineTo(10,18); c.lineTo(10,21); c.lineTo(7,21); c.closePath(); c.fill();  // small lower mandible
+    c.globalCompositeOperation='destination-out'; c.fillRect(5,17,7,1.1); c.globalCompositeOperation='source-over';
+  }
+  const ex=17+(o.eyeShift||0);
+  c.globalCompositeOperation='destination-out';
+  if(o.eye==='closed') c.fillRect(ex-2,11.4,6,1.4); else { c.beginPath(); c.arc(ex,11.6,2.2,0,Math.PI*2); c.fill(); }
+  if(!o.fly){ c.lineWidth=1.6; c.beginPath(); c.moveTo(22,17); c.quadraticCurveTo(29,22,27,31); c.stroke(); } // wing fold (perched only)
+  c.globalCompositeOperation='source-over';
+  c.restore();
+  if(!o.fly){ c.fillStyle='#fff'; c.fillRect(6,40,28,2); }                      // perch (perched only)
+}
+
+// dedicated flight pose — horizontal body, big flapping wing, fanned tail, legs tucked
+function drawFly(c,o){
+  c.clearRect(0,0,56,48);
+  c.save(); c.translate(o.dx||0, (o.dy||0)+24);  // baseline: headroom for bigger climb/dive
+  if(o.pitch){ c.translate(30,26); c.rotate(o.pitch); c.translate(-30,-26); } // pitch around center of mass
+  c.globalCompositeOperation='source-over'; c.fillStyle='#fff';
+  c.beginPath(); c.ellipse(31,26,13,7,0,0,Math.PI*2); c.fill();                  // body (horizontal)
+  c.beginPath(); c.arc(15,19,8,0,Math.PI*2); c.fill();                           // head (bigger, better proportion)
+  c.beginPath(); c.moveTo(17,12); c.lineTo(26,9); c.lineTo(20,18); c.closePath(); c.fill();   // crest
+  c.beginPath(); c.moveTo(11,16); c.lineTo(4,18); c.lineTo(4,22); c.lineTo(7,22); c.lineTo(10,20); c.closePath(); c.fill(); // beak (short stub)
+  c.beginPath(); c.moveTo(39,23); c.lineTo(52,25); c.lineTo(54,27); c.lineTo(52,29); c.lineTo(39,31); c.closePath(); c.fill(); // tail (tapered, slight fan)
+  let w;
+  if(o.wing==='up') w=[[25,26],[28,9],[31,1],[39,15],[35,27]];                   // raised, tapered to a point
+  else if(o.wing==='down') w=[[25,25],[29,39],[34,45],[45,33],[34,26]];          // lowered, tapered
+  else w=[[25,24],[37,17],[50,18],[45,26],[34,27]];                              // mid, swept back to a point
+  c.beginPath(); c.moveTo(w[0][0],w[0][1]); for(let i=1;i<w.length;i++) c.lineTo(w[i][0],w[i][1]); c.closePath(); c.fill();
+  // 2-tone shading — underside in DIM (light from upper-left)
+  c.globalCompositeOperation='source-atop'; c.fillStyle='#888';
+  c.beginPath(); c.moveTo(0,33); c.lineTo(56,21); c.lineTo(56,48); c.lineTo(0,48); c.closePath(); c.fill();
+  c.globalCompositeOperation='source-over';
+  // feather detail + carves (charcoal)
+  c.globalCompositeOperation='destination-out'; c.lineWidth=1; c.strokeStyle='#000';
+  c.beginPath(); c.moveTo(28,24); c.lineTo(34,27); c.stroke();                   // wing-base separation
+  c.beginPath(); c.moveTo(42,25); c.lineTo(52,26.4); c.moveTo(42,29); c.lineTo(52,27.6); c.stroke(); // tail feather splits
+  const bm=[(w[0][0]+w[w.length-1][0])/2,(w[0][1]+w[w.length-1][1])/2];
+  c.beginPath(); c.moveTo(w[2][0],w[2][1]); c.lineTo(bm[0],bm[1]); c.stroke();   // wing central rib
+  if(o.eye==='closed') c.fillRect(12,17.4,6,1.4); else { c.beginPath(); c.arc(14,17.6,2.2,0,Math.PI*2); c.fill(); } // eye matches head-mark
+  c.globalCompositeOperation='source-over';
+  c.restore();
+}
+
+const DRAW={head:drawHead, full:drawFull, fly:drawFly};
+
+function buildBase(which,o,dither){
+  const n=NATIVE[which];
+  const off=document.createElement('canvas'); off.width=n.w; off.height=n.h;
+  DRAW[which](off.getContext('2d'),o);
+  const src=off.getContext('2d').getImageData(0,0,n.w,n.h).data;
+  const base=document.createElement('canvas'); base.width=n.w; base.height=n.h;
+  const bctx=base.getContext('2d'); const img=bctx.createImageData(n.w,n.h);
+  for(let y=0;y<n.h;y++)for(let x=0;x<n.w;x++){
+    const i=(y*n.w+x)*4;
+    if(src[i+3]>128){
+      const ditherHere = dither || (src[i] <= 200);      // gray-marked region -> 1-bit dither (shadow)
+      if(ditherHere && ((x+y)&1)) continue;              // drop alternating pixels; charcoal shows through
+      img.data[i]=AMBER[0]; img.data[i+1]=AMBER[1]; img.data[i+2]=AMBER[2]; img.data[i+3]=255; // single ink
+    }
+  }
+  bctx.putImageData(img,0,0);
+  return base;
+}
+
+function show(canvas,base,opt){
+  let cw,ch;
+  if(opt.scale){ cw=base.width*opt.scale; ch=base.height*opt.scale; }
+  else { cw=opt.px; ch=Math.round(opt.px*base.height/base.width); }
+  canvas.width=cw; canvas.height=ch;
+  const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,cw,ch); ctx.drawImage(base,0,0,cw,ch);
+}
+
+const CFG=[
+  {id:'head_big', which:'head', mode:'blink', scale:8},
+  {id:'head_16', which:'head', mode:'idle', px:16},
+  {id:'head_24', which:'head', mode:'idle', px:24},
+  {id:'head_32', which:'head', mode:'idle', px:32},
+  {id:'head_48', which:'head', mode:'idle', px:48},
+  {id:'m_blink', which:'head', mode:'blink', scale:6},
+  {id:'m_bob', which:'head', mode:'bob', scale:6},
+  {id:'m_scan', which:'head', mode:'scan', scale:6},
+  {id:'m_talk', which:'head', mode:'talk', scale:6},
+  {id:'m_alert', which:'head', mode:'alert', scale:6},
+  {id:'m_flap', which:'head', mode:'flap', scale:6},
+  {id:'m_nod', which:'head', mode:'nod', scale:6},
+  {id:'m_shake', which:'head', mode:'shake', scale:6},
+  {id:'m_sleepy', which:'head', mode:'sleepy', scale:6},
+  {id:'st_online', which:'full', mode:'liveidle', scale:6},
+  {id:'st_degraded', which:'full', mode:'squawk', scale:6},
+  {id:'st_offline', which:'full', mode:'sleep', scale:6},
+  {id:'f_fly', which:'fly', mode:'fly', scale:6},
+  {id:'f_hop', which:'full', mode:'hop', scale:6},
+  {id:'f_loader', which:'fly', mode:'fly', scale:2, loader:true},
+  {id:'dith_head', which:'head', mode:'idle', scale:8, dither:true},
+  {id:'dith_full', which:'full', mode:'idle', scale:6, dither:true},
+  {id:'ctx_mark', which:'head', mode:'blink', px:30},
+];
+
+function optsFor(mode,t){
+  const o={eye:'open',mouth:'closed'};
+  const blink=(p)=> (t%p)<130;
+  if(mode==='blink'){ if(blink(3000)) o.eye='closed'; }
+  if(mode==='squawk'){ o.mouth=(Math.floor(t/350)%2)?'open':'closed'; if(blink(3200))o.eye='closed'; }
+  if(mode==='sleep'){ o.eye='closed'; }
+  // lively perched idle: subtle tail-flick + occasional crest twitch
+  if(mode==='liveidle'){ if(blink(3000))o.eye='closed'; o.tailFlick=((t%5200)<260)?2:0; o.crestUp=((t%8000)<420)?2:0; }
+  // motion variants
+  if(mode==='bob'){ o.dy=Math.round(Math.sin(t/300)*1.4-0.4); if(blink(3400))o.eye='closed'; }
+  if(mode==='scan'){ o.eyeShift=[0,1,0,-1][Math.floor(t/600)%4]; if(blink(3000))o.eye='closed'; }
+  if(mode==='talk'){ const on=Math.floor(t/170)%2; o.mouth=on?'open':'closed'; o.dx=on?-1:0; if(blink(3600))o.eye='closed'; }
+  if(mode==='alert'){ o.crestUp=(Math.floor(t/500)%2)?3:0; if(blink(2800))o.eye='closed'; }
+  if(mode==='flap'){ const on=Math.floor(t/150)%2; o.crestUp=2; o.mouth=on?'open':'closed'; o.dy=on?-2:0; if(blink(2600))o.eye='closed'; }
+  // more head variants
+  if(mode==='nod'){ o.dy=(Math.floor(t/220)%2)?2:0; if(blink(3200))o.eye='closed'; }
+  if(mode==='shake'){ o.dx=[0,-2,0,2][Math.floor(t/150)%4]; if(blink(3000))o.eye='closed'; }
+  if(mode==='sleepy'){ o.dy=1; o.eye=((t%2600)<800)?'closed':'open'; }
+  // full-body flight
+  // 'fly' is not scripted here — it is driven by stepFly(), a physics behavior engine
+  if(mode==='hop'){ o.dy=-Math.abs(Math.round(Math.sin(t/170)*3)); o.crestUp=1; if(blink(3000))o.eye='closed'; }
+  return o;
+}
+
+function showLoader(canvas,base,scale,dist){
+  const sW=base.width*scale, sH=base.height*scale, trackW=sW*5;
+  canvas.width=trackW; canvas.height=sH;
+  const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,trackW,sH);
+  ctx.fillStyle='#3a2a12';
+  for(let px=2;px<trackW-2;px+=8) ctx.fillRect(px,sH-3,3,2);        // dotted track
+  const span=trackW+sW, x=trackW-(((dist*scale)%span));            // engine-driven, right->left (forward)
+  ctx.drawImage(base,0,0,base.width,base.height, x,0, sW,sH);
+}
+
+// ---- live-tunable flight parameters ----
+const P = { gravity:0.2, lift:0.3, vDrag:0.92, diveDrag:0.99, diveBoost:0.13, catch:0.9,
+            thrust:2, drag:0.96, beat:0.42, pitch:0.13, pitchSmooth:0.4, startFlapY:7,
+            ceiling:-30, floor:12, flapMin:2, flapMax:12 };
+const SLIDERS=[
+  {k:'gravity',     min:0,    max:0.20,  step:0.002},
+  {k:'lift',        min:0,    max:0.30,  step:0.005},
+  {k:'vDrag',       min:0.85, max:0.995, step:0.005},   // drag while RISING -> climb tops out, up-momentum bleeds
+  {k:'diveDrag',    min:0.90, max:0.999, step:0.005},   // drag while FALLING -> high = dive keeps accelerating
+  {k:'diveBoost',   min:0,    max:0.15,  step:0.005},   // extra downward accel while diving (punchier descent)
+  {k:'catch',       min:0.2,  max:1.0,   step:0.05},    // momentum kept when a burst grabs the dive (lower = sharper whip)
+  {k:'thrust',      min:0,    max:2,     step:0.05},
+  {k:'drag',        min:0.85, max:1.0,   step:0.005},   // horizontal drag -> forward momentum
+  {k:'beat',        min:0.10, max:0.80,  step:0.02},
+  {k:'pitch',       min:0,    max:0.25,  step:0.005},
+  {k:'pitchSmooth', min:0.05, max:1,     step:0.05},
+  {k:'startFlapY',  min:-10,  max:12,    step:1},        // how low it sinks before beating again (bounding)
+  {k:'ceiling',     min:-30,  max:-2,    step:1},
+  {k:'floor',       min:0,    max:24,    step:1},
+  {k:'flapMin',     min:1,    max:8,     step:1},
+  {k:'flapMax',     min:1,    max:12,    step:1},
+];
+function buildSliders(){
+  const box=document.getElementById('tuner'); if(!box) return;
+  SLIDERS.forEach(sl=>{
+    const row=document.createElement('label'); row.className='srow';
+    const name=document.createElement('span'); name.textContent=sl.k;
+    const inp=document.createElement('input'); inp.type='range'; inp.min=sl.min; inp.max=sl.max; inp.step=sl.step; inp.value=P[sl.k];
+    const val=document.createElement('span'); val.className='sv'; val.textContent=P[sl.k];
+    inp.addEventListener('input',()=>{ P[sl.k]=parseFloat(inp.value); val.textContent=P[sl.k]; });
+    row.appendChild(name); row.appendChild(inp); row.appendChild(val);
+    box.appendChild(row);
+  });
+}
+
+// ---- flight behavior engine (per-sprite physics state; emergent, not scripted) ----
+const flyStates={};
+function clamp(v,a,b){ return v<a?a:v>b?b:v; }
+function stepFly(id){
+  let s=flyStates[id];
+  if(!s){ s={y:0,vy:0,wp:0,flapping:true,flapsLeft:5,glideT:0,blink:0,pitch:0,spd:3,dist:0}; flyStates[id]=s; }
+  // --- vertical: gravity + lift, with air drag -> ease-out to terminal velocity, and momentum ---
+  s.vy += P.gravity;
+  if(s.flapping) s.vy -= P.lift;
+  else if(s.vy>0) s.vy += P.diveBoost;            // tuck & dive: extra downward accel while gliding down
+  s.vy *= (s.vy>0 ? P.diveDrag : P.vDrag);        // FALL: low drag -> dive accelerates; RISE: more drag -> tops out
+  s.vy = clamp(s.vy, -3, 4.5);                     // safety cap
+  s.y  += s.vy;
+  // --- wing clock + burst lifecycle ---
+  if(s.flapping){
+    s.spd += P.thrust;                           // flapping accelerates forward too
+    s.wp  += P.beat;
+    if(s.wp>=1){ s.wp-=1; s.flapsLeft--; if(s.flapsLeft<=0){ s.flapping=false; s.glideT=0; } }
+  } else {
+    s.glideT++;
+    if(s.y > P.startFlapY || s.glideT > 80){      // bounding: dropped to the trigger -> wings grab, sharp catch, arc up
+      const lo=Math.min(P.flapMin,P.flapMax), hi=Math.max(P.flapMin,P.flapMax);
+      s.vy *= P.catch;                            // grab air at the bottom of the dive -> crisp whip recovery
+      s.flapping=true; s.flapsLeft=lo+Math.floor(Math.random()*(hi-lo+1)); s.wp=0;
+    } else if(Math.random()<0.012){               // unscripted single corrective beat (keeps momentum)
+      s.flapping=true; s.flapsLeft=1; s.wp=0;
+    }
+  }
+  // --- horizontal: momentum (drag near 1 holds speed; thrust above adds it) ---
+  s.spd *= P.drag;
+  s.spd = clamp(s.spd, 0.6, 8);
+  s.dist += s.spd;
+  // --- soft bounds: don't hard-zero (keep momentum), just clip + gently reflect ---
+  if(s.y < P.ceiling){ s.y=P.ceiling; if(s.vy<0) s.vy*=-0.15; }
+  if(s.y > P.floor){   s.y=P.floor;   if(s.vy>0) s.vy*=-0.15; }
+  // --- pitch follows velocity, smoothed ---
+  const target = clamp(-s.vy*P.pitch, -0.24, 0.24);
+  s.pitch += (target - s.pitch)*P.pitchSmooth;
+  if(s.blink>0) s.blink--; else if(Math.random()<0.012) s.blink=2;
+  const o={fly:true};
+  o.dy = Math.round(s.y);                        // smooth trajectory only — no cosmetic bob, no horizontal jitter
+  if(s.flapping){ const f=s.wp%1; o.wing = f<0.40?'down':f<0.65?'mid':f<0.90?'up':'mid'; }
+  else o.wing='mid';
+  o.pitch = s.pitch;
+  o.eye = s.blink>0?'closed':'open';
+  return o;
+}
+
+function tick(){
+  const t=Date.now();
+  for(const cfg of CFG){
+    const el=document.getElementById(cfg.id); if(!el) continue;
+    const o = (cfg.mode==='fly') ? stepFly(cfg.id) : optsFor(cfg.mode,t);
+    const base=buildBase(cfg.which, o, cfg.dither);
+    if(cfg.loader) showLoader(el, base, cfg.scale||4, flyStates[cfg.id].dist);
+    else show(el, base, cfg);
+  }
+}
+buildSliders();
+tick();
+setInterval(tick,66);
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+# Krystian Słowik
+
+> Personal site of Krystian Słowik — support & integrations engineer (enterprise tier) at n8n, based in Münster, Germany. Escalated Kubernetes incidents, broken integrations, and AI agent pipelines, debugged at source level. Cybersecurity background. The site covers his selected work, an experience timeline, a writing section, and a chat ("słowik" — Polish for nightingale, his surname) answered by his own backend.
+
+Motto: root cause over vibes — the wrong theory dies when the evidence lands. He reads the source when the docs lie.
+
+## About
+
+- [Home](https://krystianslowik.com/): Who he is, what he's doing now, five selected work case studies, experience timeline, stack, and contact.
+- [Writing index](https://krystianslowik.com/writing/): Notes on incidents, homelab Kubernetes, and engineering culture.
+
+## Writing
+
+- [Boring is a feature](https://krystianslowik.com/writing/boring-is-a-feature/): Why he optimises systems for the absence of surprise, and what that costs in perceived ambition.
+- [The postmortem I got wrong](https://krystianslowik.com/writing/the-postmortem-i-got-wrong/): He blamed a config when the failure was a review process — the honest rewrite of an incident report.
+- [k8s at home, and why it's not a toy](https://krystianslowik.com/writing/k8s-at-home/): A three-node bare-metal kubeadm cluster in Münster as the rehearsal room for production.
+
+## Work highlights
+
+- [End-to-end delivery](https://krystianslowik.com/#work): Event-driven platform for GB-scale imaging — content-addressed ingest, native tiler, domain-specific detection model; ~20 min per file cut to ~1.5 s.
+- [An n8n node, because the platform was missing one](https://krystianslowik.com/#work): Built and shipped n8n-nodes-plainapi to the community — the full Plain GraphQL surface as an n8n node, 34 operations across 8 resources, typed credential, zero runtime deps.
+- [Reusable deployment plays](https://krystianslowik.com/#work): Sole author of an enterprise Kubernetes deployment playbook — Helm tradeoffs, sizing, hardening, incident-indexed troubleshooting; every engagement codified into a play.
+- [Enterprise deployments, debugged at source](https://krystianslowik.com/#work): EKS/AKS incidents (TLS/mTLS, proxies, licensing state) resolved by source-level root-cause analysis instead of trusting docs.
+- [AI pipelines, debugged where they broke](https://krystianslowik.com/#work): Multi-provider agent systems — tool-call schema mismatches, silent context truncation, cascading retries — diagnosed at the failing layer.
+
+## Contact
+
+- [Email](mailto:hej@krystianslowik.com): hej@krystianslowik.com — best path; he reads everything and replies to most of it.
+- [GitHub](https://github.com/krystianslowik): @krystianslowik
+- [LinkedIn](https://www.linkedin.com/in/krystianslowik/): /in/krystianslowik
+
+## Optional
+
+- [Full details](https://krystianslowik.com/llms-full.txt): Expanded bio, experience timeline, stack, full case-study summaries and post abstracts.
+- [Ask the słowik](https://krystianslowik.com/#chat): An AI chat named for his surname — the clockwork nightingale, not the man — trained on his notes and postmortems and served by his own backend; it says "don't know" when it wasn't taught the answer.

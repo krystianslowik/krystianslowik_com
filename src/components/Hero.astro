@@ -1,0 +1,59 @@
+---
+import { site } from "@data/site";
+const { identity, hero, slowik } = site;
+// the surname is the bird's OG perch — it sits on the name itself
+const nameParts = identity.name.split(" ");
+const surname = nameParts.pop();
+const forename = nameParts.join(" ");
+---
+<section id="content" class="mx-auto max-w-[1120px] px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-20">
+  <div class="grid gap-10 lg:grid-cols-[1fr_minmax(0,400px)] lg:items-center lg:gap-16">
+    <!-- left: bio — no data-reveal: this is the LCP element, paint it immediately -->
+    <div>
+      <p class="mono-label">{hero.kicker}</p>
+      <h1 class="mt-5 text-[clamp(2.4rem,11.5vw,3rem)] font-bold leading-[0.95] tracking-tight sm:text-7xl">
+        {forename} <span data-perch="name" class="inline-block">{surname}</span>
+      </h1>
+      <!-- etymology: Słowik = nightingale — and the bird below IS the słowik now -->
+      <p class="mt-2.5 font-serif text-base italic text-muted sm:text-lg">
+        <span lang="pl">słowik</span> <span class="not-italic text-fg-2">·</span> <span class="text-fg-2">/ˈswɔ·vik/</span> <span class="not-italic text-fg-2">·</span> Polish for “nightingale”
+      </p>
+      <p class="mt-6 max-w-xl text-xl leading-snug text-fg sm:text-2xl">{identity.role}</p>
+      <p class="mt-5 max-w-lg text-fg-2">{identity.manifesto}</p>
+      <div class="mt-9 flex flex-wrap items-center gap-5">
+        <a
+          href={hero.ctaPrimary.href}
+          class="rounded-sm bg-accent px-5 py-3 font-medium text-bg transition-colors hover:bg-accent-hi active:bg-accent"
+        >{hero.ctaPrimary.label} →</a>
+        <a href={hero.ctaSecondary.href} class="mono-label inline-block py-2 transition-colors hover:text-accent active:text-accent">
+          {hero.ctaSecondary.label} →
+        </a>
+      </div>
+    </div>
+
+    <!-- right: ask-the-słowik teaser — clickable starter pills that auto-send
+         into the real island in [06] (bridged by the "slowik:ask" event in
+         Base.astro); the island itself lives at the bottom of the page -->
+    <div class="flex flex-col justify-center" data-perch="panel">
+      <p class="mono-label flex items-center gap-2">
+        <span class="tracking-wider">{slowik.label}</span>
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent"></span>
+        <span class="text-accent">{slowik.status}</span>
+      </p>
+      <h2 class="mt-4 text-xl leading-snug text-fg">{slowik.heroTitle}</h2>
+      <p class="mt-2 text-fg-2">{slowik.heroBlurb}</p>
+      <div class="mt-5 flex flex-wrap gap-2">
+        {slowik.chips.map((chip) => (
+          <button
+            type="button"
+            data-slowik-ask={chip}
+            class="mono-label rounded-sm border border-border px-3 py-2 text-fg-2 transition-colors hover:border-accent/50 hover:bg-accent/5 hover:text-accent active:bg-accent/10"
+          >{chip}</button>
+        ))}
+      </div>
+      <a href="#chat" class="mono-label mt-5 inline-block py-1 transition-colors hover:text-accent active:text-accent">
+        <span class="text-accent">›</span> or press / to type your own
+      </a>
+    </div>
+  </div>
+</section>

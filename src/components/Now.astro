@@ -1,0 +1,16 @@
+---
+import { site } from "@data/site";
+import SectionHeading from "./SectionHeading.astro";
+const { now } = site;
+---
+<section id="now" class="mx-auto max-w-[1120px] px-4 py-14 sm:px-6 sm:py-20">
+  <SectionHeading index="01" title="Now" meta={`updated ${now.updated}`} />
+  <div class="grid gap-8 sm:grid-cols-3" data-reveal>
+    {now.cards.map((c) => (
+      <div>
+        <p class="mono-label text-accent">{c.label}</p>
+        <p class="mt-3 text-fg-2">{c.body}</p>
+      </div>
+    ))}
+  </div>
+</section>

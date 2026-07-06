@@ -1,0 +1,10 @@
+---
+interface Props { index: string; title: string; meta?: string; id?: string; }
+const { index, title, meta, id } = Astro.props;
+---
+<header id={id} class="mb-8 flex items-baseline gap-4 scroll-mt-24 sm:mb-10 sm:gap-6 sm:scroll-mt-28" data-reveal>
+  <span class="mono-label shrink-0 text-accent">[{index}]</span>
+  <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+  <span class="hidden h-px flex-1 self-center bg-border sm:block" data-perch="rule"></span>
+  {meta && <span class="mono-label hidden whitespace-nowrap sm:inline">{meta}</span>}
+</header>

@@ -1,0 +1,62 @@
+# Krystian Słowik
+
+> Support & integrations engineer (enterprise tier) at n8n. Kubernetes, integrations, the auth layer, and AI agent pipelines that fail somewhere in the middle — debugged at source. Based in Münster, Germany (CET). Cybersecurity background. Contact: hej@krystianslowik.com.
+
+## About Krystian
+
+Krystian Słowik is a support & integrations engineer at n8n on the enterprise tier: escalated Kubernetes incidents, broken integrations, and AI pipelines that fail somewhere in the middle. He reads the source when the docs lie. His working philosophy: "I break things, fix them, and automate whatever survives. Root cause over vibes — the wrong theory dies when the evidence lands."
+
+As of mid-2026 he is: working self-hosted and cloud n8n deployments (Kubernetes, distributed state, security boundaries, AI agent pipelines); building internal tooling at work (MCP servers, Slack automation, CI/CD), shipping community n8n nodes (n8n-nodes-plainapi), and running a scanning console for his home cluster; and studying cybersecurity part-time. He speaks Polish, English and German.
+
+## Experience
+
+- 2026-01 to present: Senior product support engineer, IC3 enterprise — n8n (remote)
+- 2025-01 to 2025-12: Senior product support engineer — Cognigy; AI/LLM/NLU subject-matter expert on Kubernetes
+- 2024-06 to 2026: Software engineer, fullstack cloud — jaraco GmbH (part-time)
+- 2022-08 to 2025-01: 2nd level technical support — Trusted Shops (left with a reference letter and an award)
+- 2022-07: Game operator, plemiona.pl — InnoGames (co-op)
+- 2015-2019: ZST Kolbuszowa — computer science technikum, CISCO IT Essentials, olympiad laureate
+
+## Stack
+
+- Operate: Kubernetes (EKS, AKS, kubeadm on bare metal), Prometheus, Grafana, Loki, Jaeger, Vault, Keycloak, mTLS, SSO (OIDC/SAML), Terraform, Helm, ArgoCD, GitHub Actions
+- Build: TypeScript, Python, Kotlin, Go (and PHP where it pays), NestJS, FastAPI, Spring Boot, React/Next, MCP servers, agents, n8n workflows, Postgres, Redis, RabbitMQ, Kafka, YOLO/CVAT
+- Homelab: three bare-metal Ryzen nodes, kubeadm on Ubuntu, GitOps, Longhorn 3x replication, Calico, Cloudflare Tunnel ingress; last rolling OS upgrade finished with zero bytes lost
+
+## Selected work
+
+### End-to-end delivery
+End-to-end delivery of an event-driven platform for gigabyte-scale imaging: content-addressed ingest, a native tiler, a domain-specific detection model, and the operational system on top. An instrument pipeline took ~20 minutes per file before anyone could see the contents; he built the chain end to end — versioned content-addressed ingest buffer, a native tiler integration cutting per-file processing to ~1.5 seconds, a RabbitMQ-fed detection service with a custom-trained model, and results flowing into the operational app (lifecycle, billing, reporting) across on-prem GPU and cloud. Outcome: a 20-minute batch step became near-real-time.
+
+### An n8n node, because the platform was missing one
+Plain is a support platform built for technical teams; n8n had no node for it. He built and shipped n8n-nodes-plainapi to the community: the full Plain GraphQL surface wrapped in n8n's resource and operation model — 34 operations across threads, customers, companies, emails, notes, labels, users and CSAT, full filter and sort support, a typed credential, strict mode, zero runtime deps. Published on npm, installable from Community Nodes. Outcome: per-workflow GraphQL glue collapsed to one install and a credential.
+
+### Reusable deployment plays, not one-off fixes
+Sole author of an enterprise Kubernetes deployment playbook: execution-mode decisions, Helm chart tradeoffs, sizing, security hardening, and a troubleshooting index tied to incidents that actually happened — every engagement codified into a play. Outcome: deployments start from the playbook instead of a blank page.
+
+### Enterprise deployments, debugged at source
+Enterprise deployments across EKS and AKS where incidents arrive as symptoms with three plausible causes — TLS handshakes dying between cert validation, a proxy, a WAF and the network layer; licensing state expiring only in multi-instance mode, months apart. Method: run the elimination chain (MTU, SNI, proxy env, DNS, egress) and read the product's source instead of trusting the docs. Outcome: fixes land where the bug actually lives, with evidence customers' infra teams can act on.
+
+### AI pipelines, debugged where they broke
+Enterprise agent systems running several model providers at once: tool-call JSON that doesn't match the node's schema, context windows truncating silently mid-chain, retry logic cascading on provider 429s. Traced at the failing layer, with vendor claims verified at source level. Outcome: honest diagnoses — model, prompt, or the infrastructure in between.
+
+## Writing
+
+### Boring is a feature (2026-05-12)
+https://krystianslowik.com/writing/boring-is-a-feature/
+The best compliment a system can get is silence. On optimising for the absence of surprise — no pages, no war rooms — and the quiet career cost of being the person who keeps the lights on, since "made on-call uneventful" doesn't sparkle on a performance review.
+
+### The postmortem I got wrong (2026-02-03)
+https://krystianslowik.com/writing/the-postmortem-i-got-wrong/
+The first version had a clean root cause: a bad config value shipped late on a Friday. Tidy, blameless, wrong. The config was a symptom; the real failure was a review process that let a load-bearing change through unquestioned. The honest rewrite, and how he reads his own incident reports since.
+
+### k8s at home, and why it's not a toy (2025-12-18)
+https://krystianslowik.com/writing/k8s-at-home/
+Three bare-metal Ryzen mini-PCs in a cupboard in Münster: kubeadm, Longhorn, Calico, Cloudflare Tunnel. The only environment where breaking things on purpose is allowed. The homelab is the rehearsal room for production.
+
+## Contact
+
+- Email: hej@krystianslowik.com (best path; he reads everything and replies to most of it)
+- GitHub: https://github.com/krystianslowik (@krystianslowik)
+- LinkedIn: https://www.linkedin.com/in/krystianslowik/ (/in/krystianslowik)
+- Ask the słowik: https://krystianslowik.com/#chat — an AI chat named for his surname (słowik is Polish for nightingale) — the clockwork copy, not the man — trained on his notes and postmortems and served by his own backend; it says "don't know" when it wasn't taught the answer.

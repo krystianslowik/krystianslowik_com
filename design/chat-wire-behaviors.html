@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>chat wire — 5 movement behaviors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap" rel="stylesheet" />
+<style>
+  :root{ --bg:#0e0e0e; --panel:#191919; --bd:#2b2b2b; --bd2:#3a2e16; --fg:#e6e6e6; --muted:#7a7a7a; --amber:#e0992e;
+    --mono:"JetBrains Mono",ui-monospace,monospace; --sans:"Helvetica Neue",Arial,sans-serif; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);padding:48px 24px 120px}
+  .wrap{max-width:1120px;margin:0 auto}
+  .kick{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.08em}
+  h1{font-size:36px;font-weight:700;letter-spacing:-.02em;margin:.2em 0 0}
+
+  .modes{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+  .modes button{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--bd);background:transparent;border-radius:4px;padding:7px 12px;cursor:pointer;transition:.2s}
+  .modes button:hover{color:var(--fg)}
+  .modes button.on{color:var(--bg);background:var(--amber);border-color:var(--amber)}
+  .desc{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px;min-height:18px}
+
+  .stage{position:relative;margin-top:22px;height:380px;overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+  .rail{position:absolute;left:0;right:0;top:190px;height:1px;background:var(--bd)}
+  #world{position:absolute;inset:0;transition:transform .6s cubic-bezier(.33,1,.5,1)}
+  .card{position:absolute;width:300px}
+  .card .stem{position:absolute;left:18px;width:1px;background:var(--bd)}
+  .card .box{position:relative;border:1px solid var(--bd);background:var(--panel);border-radius:6px;padding:11px 14px;font-size:14px;line-height:1.55;overflow:hidden;max-height:118px;cursor:pointer;transition:max-height .35s ease,border-color .2s}
+  .card .box::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30px;background:linear-gradient(transparent,var(--panel));transition:opacity .25s}
+  .card .box:hover{max-height:440px;border-color:var(--bd2)} .card .box:hover::after{opacity:0}
+  .card.live .box{max-height:440px} .card.live .box::after{opacity:0}   /* freshest beat opens fully */
+  .card .who{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:4px}
+  .card.prt .who{color:var(--amber)} .card.prt .box{border-color:var(--bd2);background:#1c1712}
+  .card.prt .box::after{background:linear-gradient(transparent,#1c1712)}
+  .card.you{top:202px} .card.you .stem{top:-12px;height:12px}
+  .card.prt{bottom:202px} .card.prt .stem{bottom:-12px;height:12px}
+  .card.dim .box{opacity:.5}
+  #pwrap{position:absolute;top:0;z-index:4;pointer-events:auto;cursor:pointer}
+  #pwrap canvas{image-rendering:pixelated;display:block;transform-origin:50% 88%}
+  #squawk{position:absolute;z-index:6;font-family:var(--mono);font-size:13px;color:var(--amber);pointer-events:none;opacity:0;white-space:nowrap;text-shadow:0 1px 3px #000}
+  #squawk.go{animation:kraa .75s ease-out}
+  @keyframes kraa{0%{opacity:0;transform:translateY(6px) rotate(-4deg) scale(.8)}22%{opacity:1;transform:translateY(0) rotate(-2deg) scale(1.08)}70%{opacity:1}100%{opacity:0;transform:translateY(-16px) rotate(0) scale(1)}}
+
+  .bar{display:flex;align-items:center;gap:12px;max-width:680px;margin:24px auto 0;border:1px solid var(--bd);border-radius:6px;padding:12px 16px}
+  .bar .p{color:var(--amber);font-family:var(--mono)}
+  .bar input{flex:1;background:transparent;border:0;outline:0;color:var(--fg);font-family:var(--mono);font-size:14px}
+  .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .chips button{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--bd);background:transparent;border-radius:3px;padding:5px 10px;cursor:pointer}
+  .chips button:hover{color:var(--amber);border-color:var(--bd2)}
+  .hint{text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kick">[06] concept · wire · movement A/B</p>
+  <h1>Ask the parrot</h1>
+
+  <div class="modes" id="modes"></div>
+  <div class="desc" id="desc"></div>
+
+  <div class="stage" id="stage">
+    <div class="rail"></div>
+    <div id="world"></div>
+    <div id="pwrap"><canvas id="parrot"></canvas></div>
+    <div id="squawk"></div>
+  </div>
+
+  <div class="bar"><span class="p">›</span><input id="in" placeholder="ask about on-call, k8s, or me…" autocomplete="off" /><span style="color:var(--muted);font-family:var(--mono)">↵</span></div>
+  <div class="chips" id="chips"></div>
+  <p class="hint">switch a behavior above · click any card to send the parrot to that gap · ask to add new ones</p>
+</div>
+
+<script>
+// ---------- sprite ----------
+const AMBER=[224,153,46], FULL={w:40,h:46};
+function drawFull(c,o){
+  c.clearRect(0,0,FULL.w,FULL.h); c.fillStyle="#fff"; const lift=o.crestUp||0, tf=o.tailFlick||0, es=o.eyeShift||0;
+  c.beginPath(); c.ellipse(23,24,9,12,0,0,7); c.fill();
+  c.beginPath(); c.arc(18,13,9,0,7); c.fill();
+  c.beginPath(); c.moveTo(20,5); c.lineTo(32,2-lift); c.lineTo(23,13); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(17,4); c.lineTo(26,2-lift); c.lineTo(21,11); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(13,10); c.lineTo(6,12); c.lineTo(5,17); c.lineTo(9,16); c.lineTo(12,14); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(22,33); c.lineTo(33,30); c.lineTo(28+tf,46); c.lineTo(21,44); c.closePath(); c.fill();
+  c.strokeStyle="#fff"; c.lineWidth=1.6; c.beginPath(); c.moveTo(17,34); c.lineTo(17,40); c.moveTo(23,34); c.lineTo(23,40); c.stroke();
+  if(o.mouth==="open"){ c.beginPath(); c.moveTo(6,18); c.lineTo(10,18); c.lineTo(10,21); c.lineTo(7,21); c.closePath(); c.fill();
+    c.globalCompositeOperation="destination-out"; c.fillRect(5,17,7,1.1); c.globalCompositeOperation="source-over"; }
+  c.globalCompositeOperation="destination-out";
+  if(o.eye==="closed") c.fillRect(15+es,11.4,6,1.4); else { c.beginPath(); c.arc(17+es,11.6,2.2,0,7); c.fill(); }
+  c.lineWidth=1.6; c.beginPath(); c.moveTo(22,17); c.quadraticCurveTo(29,22,27,31); c.stroke();
+  c.globalCompositeOperation="source-over";
+}
+function sbase(o){
+  const off=document.createElement("canvas"); off.width=FULL.w; off.height=FULL.h; drawFull(off.getContext("2d"),o);
+  const src=off.getContext("2d").getImageData(0,0,FULL.w,FULL.h).data;
+  const b=document.createElement("canvas"); b.width=FULL.w; b.height=FULL.h; const bc=b.getContext("2d"), img=bc.createImageData(FULL.w,FULL.h);
+  for(let y=0;y<FULL.h;y++)for(let x=0;x<FULL.w;x++){const i=(y*FULL.w+x)*4; if(src[i+3]>128){ if(src[i]<=200&&((x+y)&1))continue;
+    img.data[i]=AMBER[0];img.data[i+1]=AMBER[1];img.data[i+2]=AMBER[2];img.data[i+3]=255; }}
+  bc.putImageData(img,0,0); return b;
+}
+const SCALE=2, FEET=40, RAIL_Y=190, pc=document.getElementById("parrot"), pwrap=document.getElementById("pwrap");
+pc.width=FULL.w*SCALE; pc.height=FULL.h*SCALE; const pctx=pc.getContext("2d"); pctx.imageSmoothingEnabled=false;
+let blinkT=0;
+function renderSprite(dt){
+  blinkT+=dt; const o={ eyeShift:Math.round(P.look), crestUp:P.crest, tailFlick:P.tail };
+  o.eye = (P.blink || blinkT%3000<130) ? "closed":"open";
+  o.mouth = P.talk ? (Math.floor(blinkT/150)%2?"open":"closed") : "closed";
+  pctx.clearRect(0,0,pc.width,pc.height); pctx.drawImage(sbase(o),0,0,pc.width,pc.height);
+}
+
+// ---------- shared kinematic state ----------
+const P={ pos:null, target:0, hop:0, sx:1, sy:1, facing:-1, look:0, crest:0, tail:0, blink:false, talk:false };
+const rnd=(a,b)=>a+Math.random()*(b-a);
+
+// ---------- a parametric hop FSM (used by several modes) ----------
+let H=null;
+function startHop(to, c){
+  H={to, from:P.pos, phase:"aim", tp:0, dur:c.dur(), h:c.height(), c};
+  P.facing = Math.sign(to-P.pos)||P.facing;
+  if(c.gaze) P.look = P.facing>0?1.4:-1.4;
+}
+function stepHop(dt){
+  const c=H.c; H.tp+=dt;
+  if(H.phase==="aim"){
+    const u=Math.min(1,H.tp/c.antic); P.sy=1-0.14*c.crouch*Math.sin(u*Math.PI/2); P.sx=1+0.06*c.crouch*Math.sin(u*Math.PI/2);
+    if(H.tp>=c.antic){ H.phase="air"; H.tp=0; P.look=0; }
+  } else if(H.phase==="air"){
+    const u=Math.min(1,H.tp/H.dur);
+    P.pos=H.from+(H.to-H.from)*(1-Math.pow(1-u,2));
+    P.hop=Math.sin(u*Math.PI)*H.h;
+    P.sy=1+0.12*c.stretch*Math.sin(u*Math.PI); P.sx=1-0.06*c.stretch*Math.sin(u*Math.PI);
+    P.tail=Math.sin(u*Math.PI)*2;                 // tail lags up mid-air (secondary)
+    if(u>=1){ H.phase="land"; H.tp=0; P.hop=0; }
+  } else {
+    const u=Math.min(1,H.tp/c.landDur), s=Math.sin(u*Math.PI)*(1-u*0.4);
+    P.sy=1-0.18*c.squash*s; P.sx=1+0.14*c.squash*s; P.tail=s*1.5;
+    if(H.tp>=c.landDur){ H=null; P.sx=1;P.sy=1;P.tail=0; rest=c.rest(); }
+  }
+}
+let rest=0;
+
+// ---------- 5 behaviors ----------
+const cfgHop ={antic:70, crouch:.7,stretch:1,squash:1,landDur:110,gaze:true, dur:()=>rnd(210,360),height:()=>rnd(18,32),step:()=>rnd(70,130),rest:()=>rnd(60,200)};
+const cfgSpring={antic:150,crouch:1.4,stretch:1.4,squash:1.6,landDur:170,gaze:true,dur:()=>rnd(190,260),height:()=>rnd(22,30),step:()=>rnd(80,150),rest:()=>rnd(120,280)};
+const cfgHeavy={antic:300,crouch:1.2,stretch:.5,squash:1.7,landDur:260,gaze:true,dur:()=>rnd(380,500),height:()=>rnd(12,18),step:()=>rnd(50,90),rest:()=>rnd(300,600)};
+const cfgRestl={antic:55, crouch:.5,stretch:.9,squash:.8,landDur:90, gaze:true,dur:()=>rnd(150,230),height:()=>rnd(14,26),step:()=>rnd(60,120),rest:()=>rnd(40,120)};
+
+function fsmMove(dt, cfg, idle){
+  if(H){ stepHop(dt); return; }
+  if(rest>0){ rest-=dt; return; }
+  const d=P.target-P.pos;
+  if(Math.abs(d)>5){ const step=Math.sign(d)*Math.min(Math.abs(d), cfg.step()); startHop(P.pos+step, cfg); }
+  else { P.facing=-1; idle(dt); }
+}
+
+let idleT=0;
+const BEHAVIORS={
+  hop:{ name:"hop", desc:"clean ballistic hops · gaze-lead · light squash on landing · calm idle",
+    step(dt){ fsmMove(dt,cfgHop,(dt)=>{ idleT-=dt; if(idleT<=0){ idleT=rnd(1400,4200);
+      if(Math.random()<.5) startHop(P.pos+rnd(-4,4),{...cfgHop,height:()=>rnd(6,12),dur:()=>rnd(160,240),antic:40});
+      else { P.look=Math.random()<.5?-1.3:1.3; setTimeout(()=>P.look=0, rnd(350,650)); } } }); } },
+
+  spring:{ name:"spring", desc:"strong anticipation crouch · stretchy launch · bouncy heavy landing · springy settle",
+    step(dt){ fsmMove(dt,cfgSpring,(dt)=>{ idleT-=dt; if(idleT<=0){ idleT=rnd(1600,4000);
+      startHop(P.pos+rnd(-3,3),{...cfgSpring,height:()=>rnd(8,14),dur:()=>rnd(150,210)}); } }); } },
+
+  shuffle:{ name:"shuffle", desc:"no big hops — small side-stepping shuffle with a weight-shifting body sway",
+    step(dt){ // continuous tiny steps + sway
+      const d=P.target-P.pos; const sp=0.10; // px/ms-ish via dt
+      if(Math.abs(d)>3){ P.pos += Math.sign(d)*Math.min(Math.abs(d), sp*dt*8); P.facing=Math.sign(d);
+        const s=Math.sin(performance.now()/110); P.hop=Math.abs(s)*3; P.sx=1+ s*0.06; P.sy=1- Math.abs(s)*0.05; P.tail=s*1.5; }
+      else { P.facing=-1; const s=Math.sin(performance.now()/520); P.hop=Math.abs(Math.sin(performance.now()/900))*1.5;
+        P.sx=1+s*0.03; P.sy=1; if(Math.random()<.004){ P.look=Math.random()<.5?-1:1; setTimeout(()=>P.look=0,500);} } } },
+
+  restless:{ name:"restless", desc:"snaps to target fast, then very alive idle — glances, head bobs, double-hops, preens",
+    step(dt){ fsmMove(dt,cfgRestl,(dt)=>{ idleT-=dt; if(idleT<=0){ idleT=rnd(500,1700); const roll=Math.random();
+      if(roll<.3) startHop(P.pos+rnd(-6,6),{...cfgRestl,height:()=>rnd(8,16),dur:()=>rnd(140,200),antic:30});
+      else if(roll<.55){ P.look=Math.random()<.5?-1.5:1.5; setTimeout(()=>P.look=0,rnd(250,500)); }
+      else if(roll<.8){ P.crest=3; setTimeout(()=>P.crest=0,rnd(200,450)); }       // alert crest
+      else { P.blink=true; setTimeout(()=>{P.blink=false;P.look=-1.5;setTimeout(()=>P.look=0,400);}, 160);} // quick double-take
+    } }); } },
+
+  heavy:{ name:"heavy", desc:"slow & deliberate — deep crouch, long slow arc, heavy squash landing, long settle, occasional stretch",
+    step(dt){ fsmMove(dt,cfgHeavy,(dt)=>{ idleT-=dt; if(idleT<=0){ idleT=rnd(2600,5200);
+      if(Math.random()<.4){ P.sy=1.12; P.crest=2; setTimeout(()=>{P.sy=1;P.crest=0;}, 700); }  // stretch
+      else startHop(P.pos+rnd(-3,3),{...cfgHeavy,height:()=>rnd(6,10),dur:()=>rnd(320,420)}); } }); } },
+};
+let mode="hop";
+
+// ---------- conversation (woven transcript) ----------
+const START=70, GAP=205;
+const stage=document.getElementById("stage"), world=document.getElementById("world"), input=document.getElementById("in");
+let cards=[], camX=0;
+const worldX=i=>START+i*GAP;
+function gapAfter(i){ return worldX(i)+camX + 250 + 30; }
+function add(role,text){
+  const i=cards.length, el=document.createElement("div");
+  el.className="card "+(role==="parrot"?"prt":"you"); el.style.left=worldX(i)+"px";
+  el.innerHTML='<div class="stem"></div><div class="box"><span class="who">'+(role==="parrot"?"parrot":"you")+'</span>'+text+'</div>';
+  el.querySelector(".box").onclick=()=>{ P.target=gapAfter(i); };
+  world.appendChild(el); cards.push({el});
+  cards.forEach((c,k)=>{ c.el.classList.toggle("dim", k<cards.length-2); c.el.classList.toggle("live", k===cards.length-1); });
+  const W=stage.clientWidth; camX=Math.min(0, W*0.56-worldX(i)); world.style.transform="translateX("+camX+"px)";
+  P.target=gapAfter(i);
+}
+const replies=["A pager should mean a human has to decide right now. Everything else is a ticket — or an automation I still owe you.",
+  "k3s, not full k8s — five Talos nodes in a cupboard in Münster. It's where the bad ideas go first.",
+  "Honestly? Hire me to make your on-call boring. That is the entire pitch.","That's outside what I've parroted. Ask the real one — he answers email."];
+let r=0;
+function ask(q){ if(!q.trim())return; add("you",q);
+  setTimeout(()=>{ add("parrot",replies[r++%replies.length]); squawk(); },950); }
+
+// ---------- loops ----------
+let last=performance.now();
+function loop(now){ const dt=Math.min(48,now-last); last=now;
+  if(P.pos===null) P.pos=stage.clientWidth*0.6;
+  BEHAVIORS[mode].step(dt);
+  renderSprite(dt);
+  pwrap.style.left=(P.pos-pc.width/2)+"px";
+  pwrap.style.top=(RAIL_Y-FEET*SCALE)+"px";
+  pc.style.transform=`translateY(${-P.hop}px) scaleX(${P.facing*P.sx}) scaleY(${P.sy})`;
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ---------- squawk / interactivity ----------
+const squawkEl=document.getElementById("squawk");
+const KRAAS=["kraa!","skraa—","kra-kraa!","brrk!","squawk.","kraaa…","ekk!"];
+let talkTimer=0;
+function squawk(text){
+  P.talk=true; P.crest=3; clearTimeout(talkTimer);
+  talkTimer=setTimeout(()=>{ P.talk=false; P.crest=0; }, 600+Math.random()*350);
+  squawkEl.textContent = text || KRAAS[Math.floor(Math.random()*KRAAS.length)];
+  squawkEl.style.left=(P.pos - 62)+"px";
+  squawkEl.style.top=(RAIL_Y - FEET*SCALE - 4)+"px";
+  squawkEl.classList.remove("go"); void squawkEl.offsetWidth; squawkEl.classList.add("go");
+}
+pwrap.addEventListener("click",()=>squawk());
+pwrap.addEventListener("mouseenter",()=>{ if(Math.random()<.65) squawk(); });
+setInterval(()=>{ if(!P.talk && Math.random()<.35) squawk(); }, 7000); // occasional idle KRAAA
+
+// ---------- ui ----------
+const modesEl=document.getElementById("modes"), descEl=document.getElementById("desc");
+Object.keys(BEHAVIORS).forEach(k=>{ const b=document.createElement("button"); b.textContent=BEHAVIORS[k].name; b.dataset.k=k;
+  b.onclick=()=>{ mode=k; H=null; rest=0; P.sx=1;P.sy=1;P.hop=0;P.crest=0;P.tail=0;P.look=0;
+    [...modesEl.children].forEach(x=>x.classList.toggle("on",x.dataset.k===k)); descEl.textContent=BEHAVIORS[k].desc; };
+  modesEl.appendChild(b);
+});
+modesEl.firstChild.classList.add("on"); descEl.textContent=BEHAVIORS.hop.desc;
+input.addEventListener("keydown",e=>{ if(e.key==="Enter"){ ask(input.value); input.value=""; }});
+["on-call philosophy","k8s at home?","why hire you?"].forEach(ch=>{ const b=document.createElement("button"); b.textContent=ch; b.onclick=()=>ask(ch); document.getElementById("chips").appendChild(b); });
+add("you","what's your on-call philosophy?"); setTimeout(()=>add("parrot",replies[0]),350);
+setTimeout(()=>add("you","do you actually run k8s at home?"),700); setTimeout(()=>add("parrot",replies[1]),1050);
+</script>
+</body>
+</html>

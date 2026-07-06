@@ -1,0 +1,28 @@
+---
+title: k8s at home, and why it's not a toy
+blurb: The homelab is where I'm allowed to break things on purpose. That's the entire point.
+pubDate: 2025-12-18
+---
+
+Three bare-metal Ryzen mini-PCs in a cupboard in Münster. Kubernetes the honest
+way — kubeadm on Ubuntu, one control plane, two workers, Longhorn keeping three
+copies of everything, Calico underneath, and a Cloudflare Tunnel instead of a
+public load balancer, because my router owes the internet nothing.
+
+People ask why bother. The answer is that it's the only environment where I'm
+allowed to break things on purpose, at 11pm, with no customer on the other end.
+Every bad idea I've shipped at work was a good idea I'd already stress-tested at
+home — or a bad one I'd already learned to fear.
+
+Things this cluster has taught me that no managed offering would:
+
+- A rolling OS upgrade across all three nodes is a rite of passage. The last one
+  finished with zero data loss, which sounds like nothing and took everything.
+- Draining the control-plane node used to storm a little wake-on-LAN helper,
+  every single time, until it got scaled to zero first. It's documented now.
+  It's routine now. The first time, it wasn't.
+- AMD idle states can kernel-panic a perfectly healthy node at 3am. All three
+  nodes carry the C-state fix, and the panic hasn't come back. I didn't learn
+  that from a runbook; I learned it from journalctl.
+
+The homelab isn't a toy. It's the rehearsal room.

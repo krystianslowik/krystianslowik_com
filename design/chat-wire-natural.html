@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>chat wire — natural (physics idle)</title>
+<style>
+  :root{ --bg:#0e0e0e; --panel:#191919; --bd:#2b2b2b; --bd2:#3a2e16; --fg:#e6e6e6; --muted:#7a7a7a; --amber:#e0992e;
+    --mono:"JetBrains Mono",ui-monospace,monospace; --sans:"Helvetica Neue",Arial,sans-serif; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);padding:40px 24px 120px}
+  .wrap{max-width:1120px;margin:0 auto}
+  .kick{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.08em}
+  h1{font-size:34px;font-weight:700;letter-spacing:-.02em;margin:.15em 0 0}
+  .row{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;align-items:center}
+  .grp{display:flex;gap:6px;align-items:center}
+  .grp .lab{font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:4px}
+  .grp button{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--bd);background:transparent;border-radius:4px;padding:6px 11px;cursor:pointer}
+  .grp button.on{color:var(--bg);background:var(--amber);border-color:var(--amber)}
+  .grp .tag{font-family:var(--mono);font-size:11px;color:var(--amber);border:1px solid var(--bd2);border-radius:4px;padding:6px 11px}
+  .desc{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;min-height:16px}
+
+  .stage{position:relative;margin-top:18px;height:380px;overflow-x:clip;overflow-y:visible;  /* bird may soar above the stage over the page */
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+  .rail{position:absolute;left:0;right:0;top:200px;height:1px;background:var(--bd)}
+  #world{position:absolute;inset:0;transition:transform .6s cubic-bezier(.33,1,.5,1)}
+  .card{position:absolute;width:300px}
+  .card .stem{position:absolute;left:18px;width:1px;background:var(--bd)}
+  .card .box{position:relative;border:1px solid var(--bd);background:var(--panel);border-radius:6px;padding:11px 14px;font-size:14px;line-height:1.55;overflow:hidden;max-height:118px;cursor:pointer;transition:max-height .35s,border-color .2s}
+  .card .box::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30px;background:linear-gradient(transparent,var(--panel))}
+  .card .box:hover{max-height:440px;border-color:var(--bd2)} .card .box:hover::after{opacity:0}
+  .card.live .box{max-height:440px} .card.live .box::after{opacity:0}
+  .card .who{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:4px}
+  .card.prt .who{color:var(--amber)} .card.prt .box{border-color:var(--bd2);background:#1c1712} .card.prt .box::after{background:linear-gradient(transparent,#1c1712)}
+  .card.you{top:212px} .card.you .stem{top:-12px;height:12px}
+  .card.prt{bottom:212px} .card.prt .stem{bottom:-12px;height:12px}
+  .card.dim .box{opacity:.5}
+
+  canvas.spr{position:absolute;image-rendering:pixelated;z-index:4;pointer-events:none;transform-origin:50% 88%}
+  #flight{display:none;z-index:5;transform-origin:50% 50%}
+  #hit{position:absolute;z-index:6;cursor:pointer}
+
+  /* bubbles */
+  #bub{position:absolute;z-index:7;pointer-events:none;font-family:var(--mono);font-size:13px;white-space:nowrap;opacity:0}
+  #bub.tag{color:var(--amber)} #bub.tag.go{animation:puff .8s ease-out}
+  @keyframes puff{0%{opacity:0;transform:translateY(6px) scale(.8)}22%{opacity:1;transform:translateY(0) scale(1.08)}70%{opacity:1}100%{opacity:0;transform:translateY(-16px)}}
+  #bub.bubble{color:var(--fg);background:#222;border:1px solid var(--bd2);border-radius:10px;padding:5px 10px}
+  #bub.bubble::after{content:"";position:absolute;left:14px;bottom:-6px;width:10px;height:10px;background:#222;border-right:1px solid var(--bd2);border-bottom:1px solid var(--bd2);transform:rotate(45deg)}
+  #bub.bubble.go{animation:pop .8s ease-out}
+  @keyframes pop{0%{opacity:0;transform:translateY(8px) scale(.7)}20%{opacity:1;transform:translateY(0) scale(1.06)}80%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-6px)}}
+
+  .bar{display:flex;align-items:center;gap:12px;max-width:680px;margin:22px auto 0;border:1px solid var(--bd);border-radius:6px;padding:12px 16px}
+  .bar .p{color:var(--amber);font-family:var(--mono)} .bar input{flex:1;background:transparent;border:0;outline:0;color:var(--fg);font-family:var(--mono);font-size:14px}
+  .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .chips button{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--bd);background:transparent;border-radius:3px;padding:5px 10px;cursor:pointer}
+  .chips button:hover{color:var(--amber);border-color:var(--bd2)}
+  .hint{text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kick">[06] concept · wire · natural idle (emergent physics)</p>
+  <h1>Ask the parrot</h1>
+  <div class="row">
+    <div class="grp"><span class="lab">move</span><span class="tag">fly · physics</span></div>
+    <div class="grp" id="bubGrp"><span class="lab">bubble</span></div>
+  </div>
+  <div class="desc" id="desc">idle = spontaneous physical flights (gravity, lift, bounding-flap bursts, accelerating dives) that land back on the wire — nothing tweened</div>
+
+  <div class="stage" id="stage">
+    <div class="rail"></div>
+    <div id="world"></div>
+    <canvas class="spr" id="perched"></canvas>
+    <canvas class="spr" id="flight"></canvas>
+    <div id="hit"></div>
+    <div id="bub"></div>
+  </div>
+
+  <div class="bar"><span class="p">›</span><input id="in" placeholder="ask about on-call, k8s, or me…" autocomplete="off" /><span style="color:var(--muted);font-family:var(--mono)">↵</span></div>
+  <div class="chips" id="chips"></div>
+  <p class="hint">it wanders on its own · click a card to send the parrot there · click the bird to startle it</p>
+</div>
+
+<script>
+const AMBER=[224,153,46], FULL={w:40,h:46}, FLY={w:56,h:108}, FLY_BASE=36;
+
+// ---------- sprites ----------
+// perched pose (mouth / eye / crest / tail states)
+function drawFull(c,o){
+  c.clearRect(0,0,FULL.w,FULL.h); c.fillStyle="#fff"; const lift=o.crestUp||0,tf=o.tailFlick||0,es=o.eyeShift||0;
+  c.beginPath(); c.ellipse(23,24,9,12,0,0,7); c.fill(); c.beginPath(); c.arc(18,13,9,0,7); c.fill();
+  c.beginPath(); c.moveTo(20,5); c.lineTo(32,2-lift); c.lineTo(23,13); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(17,4); c.lineTo(26,2-lift); c.lineTo(21,11); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(13,10); c.lineTo(6,12); c.lineTo(5,17); c.lineTo(9,16); c.lineTo(12,14); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(22,33); c.lineTo(33,30); c.lineTo(28+tf,46); c.lineTo(21,44); c.closePath(); c.fill();
+  c.strokeStyle="#fff"; c.lineWidth=1.6; c.beginPath(); c.moveTo(17,34); c.lineTo(17,40); c.moveTo(23,34); c.lineTo(23,40); c.stroke();
+  if(o.mouth==="open"){ c.beginPath(); c.moveTo(6,18); c.lineTo(10,18); c.lineTo(10,21); c.lineTo(7,21); c.closePath(); c.fill();
+    c.globalCompositeOperation="destination-out"; c.fillRect(5,17,7,1.1); c.globalCompositeOperation="source-over"; }
+  c.globalCompositeOperation="destination-out";
+  if(o.eye==="closed") c.fillRect(15+es,11.4,6,1.4); else { c.beginPath(); c.arc(17+es,11.6,2.2,0,7); c.fill(); }
+  c.lineWidth=1.6; c.beginPath(); c.moveTo(22,17); c.quadraticCurveTo(29,22,27,31); c.stroke(); c.globalCompositeOperation="source-over";
+}
+// flight pose — horizontal body, flapping wing, pitch follows velocity (ported from the loader engine)
+function drawFly(c,o){
+  c.clearRect(0,0,FLY.w,FLY.h);
+  c.save(); c.translate(o.dx||0,(o.dy||0)+FLY_BASE);
+  if(o.pitch){ c.translate(30,26); c.rotate(o.pitch); c.translate(-30,-26); }
+  c.fillStyle="#fff";
+  c.beginPath(); c.ellipse(31,26,13,7,0,0,7); c.fill(); c.beginPath(); c.arc(15,19,8,0,7); c.fill();
+  c.beginPath(); c.moveTo(17,12); c.lineTo(26,9); c.lineTo(20,18); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(11,16); c.lineTo(4,18); c.lineTo(4,22); c.lineTo(7,22); c.lineTo(10,20); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(39,23); c.lineTo(52,25); c.lineTo(54,27); c.lineTo(52,29); c.lineTo(39,31); c.closePath(); c.fill();
+  let w; if(o.wing==="up")w=[[25,26],[28,9],[31,1],[39,15],[35,27]]; else if(o.wing==="down")w=[[25,25],[29,39],[34,45],[45,33],[34,26]]; else w=[[25,24],[37,17],[50,18],[45,26],[34,27]];
+  c.beginPath(); c.moveTo(w[0][0],w[0][1]); for(let i=1;i<w.length;i++)c.lineTo(w[i][0],w[i][1]); c.closePath(); c.fill();
+  c.globalCompositeOperation="source-atop"; c.fillStyle="#888";                  // 1-bit dither underside
+  c.beginPath(); c.moveTo(0,33); c.lineTo(56,21); c.lineTo(56,48); c.lineTo(0,48); c.closePath(); c.fill();
+  c.globalCompositeOperation="source-over";
+  c.globalCompositeOperation="destination-out"; c.lineWidth=1; c.strokeStyle="#000";
+  c.beginPath(); c.moveTo(28,24); c.lineTo(34,27); c.stroke();
+  c.beginPath(); c.moveTo(42,25); c.lineTo(52,26.4); c.moveTo(42,29); c.lineTo(52,27.6); c.stroke();
+  const bm=[(w[0][0]+w[w.length-1][0])/2,(w[0][1]+w[w.length-1][1])/2];
+  c.beginPath(); c.moveTo(w[2][0],w[2][1]); c.lineTo(bm[0],bm[1]); c.stroke();
+  if(o.eye==="closed") c.fillRect(12,17.4,6,1.4); else { c.beginPath(); c.arc(14,17.6,2.2,0,7); c.fill(); }
+  c.globalCompositeOperation="source-over";
+  c.restore();
+}
+// geometry -> 1-bit amber raster (single ink, dither shadow)
+function raster(fn,W,H,o){ const off=document.createElement("canvas"); off.width=W; off.height=H; fn(off.getContext("2d"),o);
+  const s=off.getContext("2d").getImageData(0,0,W,H).data; const b=document.createElement("canvas"); b.width=W;b.height=H;
+  const bc=b.getContext("2d"),img=bc.createImageData(W,H);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4; if(s[i+3]>128){ if(s[i]<=200&&((x+y)&1))continue; img.data[i]=AMBER[0];img.data[i+1]=AMBER[1];img.data[i+2]=AMBER[2];img.data[i+3]=255; }}
+  bc.putImageData(img,0,0); return b;
+}
+
+const SCALE=2, FEET=40, RAIL_Y=200;
+const perched=document.getElementById("perched"), flight=document.getElementById("flight"), hit=document.getElementById("hit");
+perched.width=FULL.w*SCALE; perched.height=FULL.h*SCALE; flight.width=FLY.w*SCALE; flight.height=FLY.h*SCALE;
+const pcx=perched.getContext("2d"); pcx.imageSmoothingEnabled=false; const fcx=flight.getContext("2d"); fcx.imageSmoothingEnabled=false;
+hit.style.width=(FULL.w*SCALE)+"px"; hit.style.height=(FULL.h*SCALE)+"px";
+const FLY_ANCHOR=flight.height*0.72;   // canvas-top -> body, tuned so flyArc=0 lines the flight body up with the perched body
+const REDUCE=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- bird state ----------
+const P={pos:null,target:0,facing:-1,look:0,crest:0,tail:0,blink:false,talk:false,opacity:1,
+  hop:0,sx:1,sy:1,lean:0,
+  flying:false,flyArc:0,wing:"mid",pitch:0,flightEye:"open",
+  popT:0,popDur:1,popH:0,recoilX:0};
+let mouseX=null, bubTimer=0, blinkT=0;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+
+function renderSprites(dt){ blinkT+=dt;
+  const o={eyeShift:Math.round(P.look),crestUp:P.crest,tailFlick:P.tail};
+  o.eye=(P.blink||blinkT%3000<130)?"closed":"open"; o.mouth=P.talk?(Math.floor(blinkT/150)%2?"open":"closed"):"closed";
+  pcx.clearRect(0,0,perched.width,perched.height); pcx.drawImage(raster(drawFull,FULL.w,FULL.h,o),0,0,perched.width,perched.height);
+  if(P.flying){ fcx.clearRect(0,0,flight.width,flight.height); fcx.drawImage(raster(drawFly,FLY.w,FLY.h,{wing:P.wing,pitch:(P.rpitch!==undefined?P.rpitch:P.pitch),eye:P.flightEye}),0,0,flight.width,flight.height); }
+}
+
+// ===================================================================
+// PHYSICS FLIGHT ENGINE  (lifted from design/parrot-1bit.html, tuned)
+// emergent, NOT scripted: gravity + sustained lift while flapping,
+// asymmetric air drag (dives accelerate), bounding-flight bursts,
+// dive-catch whip, pitch that follows velocity.
+// ===================================================================
+const PH={ gravity:0.2, lift:0.3, vDrag:0.92, diveDrag:0.99, diveBoost:0.13, catch:0.9,
+           thrust:2, drag:0.96, beat:0.42, pitch:0.13, pitchSmooth:0.4, startFlapY:7,
+           ceiling:-48, floor:12, flapMin:2, flapMax:12 };  // ceiling lowered from -30: more headroom to soar (per-flap feel unchanged)
+function newFly(flaps){ return {y:0,vy:0,wp:0,flapping:true,flapsLeft:flaps,glideT:0,blink:0,pitch:0,spd:3}; }
+// glideDown: suppress new flap bursts so the engine's own descent delivers a soft landing
+function stepFly(s,glideDown){
+  s.vy += PH.gravity;
+  if(s.flapping) s.vy -= PH.lift;
+  else if(s.vy>0) s.vy += PH.diveBoost;            // tuck & dive: extra downward accel
+  s.vy *= (s.vy>0 ? PH.diveDrag : PH.vDrag);        // FALL keeps speed -> dive accelerates; RISE bleeds -> tops out
+  s.vy = clamp(s.vy,-3,4.5);
+  s.y  += s.vy;
+  if(s.flapping){
+    s.spd += PH.thrust; s.wp += PH.beat;
+    if(s.wp>=1){ s.wp-=1; s.flapsLeft--; if(s.flapsLeft<=0){ s.flapping=false; s.glideT=0; } }
+  } else if(!glideDown){
+    s.glideT++;
+    if(s.y > PH.startFlapY || s.glideT > 80){       // bounding: dropped to trigger -> grab air, whip up
+      const lo=Math.min(PH.flapMin,PH.flapMax), hi=Math.max(PH.flapMin,PH.flapMax);
+      s.vy *= PH.catch; s.flapping=true; s.flapsLeft=lo+Math.floor(Math.random()*(hi-lo+1)); s.wp=0;
+    } else if(Math.random()<0.012){                 // unscripted single corrective beat
+      s.flapping=true; s.flapsLeft=1; s.wp=0;
+    }
+  }
+  s.spd *= PH.drag; s.spd = clamp(s.spd,0.6,8);
+  if(s.y < PH.ceiling){ s.y=PH.ceiling; if(s.vy<0) s.vy*=-0.15; }
+  // (no hard floor clamp here — landing is governed below so the dive can deliver the bird onto the wire)
+  const target = clamp(-s.vy*PH.pitch,-0.24,0.24);
+  s.pitch += (target - s.pitch)*PH.pitchSmooth;
+  if(s.blink>0) s.blink--; else if(Math.random()<0.012) s.blink=2;
+  const f=s.wp%1;
+  return { wing:s.flapping?(f<0.40?"down":f<0.65?"mid":f<0.90?"up":"mid"):"mid", pitch:s.pitch, eye:s.blink>0?"closed":"open" };
+}
+
+// ---------- horizontal mapping (engine forward thrust + soft home spring) ----------
+// the engine owns vertical + WHEN it flaps; horizontal is a particle whose forward
+// pushes come from those same flap bursts, curved back by a gentle pull toward the
+// live-end/focus. departures, wander, swoop-home and landing all emerge from forces.
+const STEP_MS=1000/20;        // FIXED physics cadence (50ms, ~6.7 flaps/s) — display-independent; the render interpolates between ticks
+const VS=4.2;                 // engine y -> screen arc px (y=0 == on the wire); higher = flies taller above the wire
+const ARC_MIN=-30;            // cruise troughs may dip below the wire line (it's a wire, not a floor); the landing approach clamps at 0
+const SPD_PX=4.5;             // engine forward speed (fly.spd) -> px/step: horizontal motion RIDES the engine, no separate spring
+const ACCEL=0.36;             // how fast hvx converges on the engine's speed (cruise)
+const DIVE_XV=0.6;            // dives convert into forward speed (ballistic surge, like real bounding flight)
+const TURN_DB=28;             // deadband before the bird commits to turning around (px)
+const APPROACH_K=0.28, APPROACH_MAX=12, APPROACH_ACCEL=0.5; // landing-approach servo (eases onto the perch point)
+const VMAX=50;                // px/step safety cap
+const KICK=8;                 // takeoff impulse along heading
+const ARRIVE=42, OUT_MS=900;  // wander out-leg ends near the wander point / on timeout
+const LAND_X=30, LAND_Y=0, LEG_MS=8000;
+let hx=0, hvx=0, heading=-1, aimX=0, phase="home", legT=0, fly=null, landT=0, parking=false, forceLand=false, prevSide=0;
+let idleT=0, rest=0, ready=false;   // ready=false while the seed history loads (no flights, just settle)
+let acc=0, pPos=0, pArc=0, pPitch=0, renderArc=0;  // fixed-timestep accumulator + previous-tick snapshots (render interpolation)
+
+function launch(opts){
+  hx=P.pos; parking=false; forceLand=false;             // always take off from where the bird currently perches
+  if(opts.wander){
+    const W=stage.clientWidth, side=(Math.random()<.5?-1:1);
+    aimX=clamp(P.target+side*rnd(80,200),70,W-70); phase="out";
+    fly=newFly(2+Math.floor(Math.random()*3));          // 2-4 beats -> small unpredictable flits, occasional bigger loop
+  } else {
+    aimX=P.target; phase="home";
+    const dist=Math.abs(aimX-hx);
+    fly=newFly(clamp(3+Math.floor(dist/130),3,7));       // farther focus -> more beats -> climbs higher
+  }
+  fly.vy=-2.4;                                           // the leap: the legs fire an upward impulse (inside the climb clamp)
+  P.pitch=0; P.wing="down"; P.flightEye="open";          // fresh pose — never a stale nose-down frame from the last flight
+  heading=Math.sign(aimX-hx)||-1; hvx=heading*KICK;
+  prevSide=Math.sign(P.target-hx);                       // for crossing detection (a fast bird can jump the latch window)
+  legT=0; P.flying=true; P.flyArc=0;
+  acc=0; pPos=P.pos; pArc=0; pPitch=0;                   // seed interpolation so the first flight frame doesn't jump
+}
+// takeoff anticipation: a ~100ms crouch, then the leap. a message mid-crouch retargets the pending takeoff.
+let crouching=false, crouchTimer=0, pendingOpts=null;
+function crouchLaunch(opts){
+  if(P.flying) return;
+  if(crouching){ pendingOpts=opts; return; }
+  crouching=true; pendingOpts=opts; P.sy=0.88; P.sx=1.07;
+  crouchTimer=setTimeout(()=>{ crouching=false; P.sx=1; P.sy=1; const o=pendingOpts; pendingOpts=null; launch(o); },100);
+}
+function cancelCrouch(){ if(!crouching) return; clearTimeout(crouchTimer); crouching=false; pendingOpts=null; P.sx=1; P.sy=1; }
+function land(){
+  P.flying=false; P.flyArc=0; renderArc=0; P.pos=clamp(hx,20,stage.clientWidth-20); hx=P.pos; hvx=0; fly=null; parking=false; forceLand=false;
+  landT=170;                                            // brief touch-down squash
+  rest=rnd(500,1100);                                   // birds settle after arriving — no instant relaunch
+  mood="calm"; bout=0; idleT=Math.min(logn(2600,0.45),9000);
+  if(Math.random()<.5) setTimeout(preen,rnd(400,900));  // often tidies feathers after touchdown
+  faceNewest();
+}
+function updateFlight(dt){
+  // latch the perch only when descending or already near wire height — a fast high pass
+  // overshoots and circles back (heading deadband) instead of freezing mid-climb.
+  // "crossed" catches a fast pass that jumps the 48px window between ticks.
+  const sideNow=Math.sign(P.target-hx), crossed = phase==="home" && sideNow!==0 && prevSide!==0 && sideNow!==prevSide;
+  if(!parking && phase==="home" && (Math.abs(hx-P.target)<LAND_X*1.6 || crossed) && (fly.vy>=0 || fly.y>-6)) parking=true;
+  prevSide=sideNow||prevSide;
+  const o=stepFly(fly,parking);                         // once parking, the engine glides down onto the wire
+  if(parking){
+    if(fly.vy>1.4) fly.vy*=0.86;                        // wing-brake on final: bleed the dive before contact
+    if(fly.y>0){ fly.y=0; if(fly.vy>0) fly.vy=0; }      // the wire is the floor on approach — feet catch, no clip-through
+    o.pitch = fly.pitch += (0.16-fly.pitch)*0.35;       // flare: nose comes up as the wings brake
+  }
+  P.flyArc=Math.max(ARC_MIN,-fly.y*VS); P.pitch=o.pitch; P.wing=o.wing; P.flightEye=o.eye;
+
+  const err=aimX-hx;                                     // steering intent: commit to a turn only past the deadband
+  if(Math.sign(err) && Math.sign(err)!==heading && Math.abs(err)>TURN_DB) heading=Math.sign(err);
+  if(parking){                                           // landing approach: ease onto the perch point
+    hvx += (clamp((aimX-hx)*APPROACH_K,-APPROACH_MAX,APPROACH_MAX)-hvx)*APPROACH_ACCEL;
+  } else {                                               // cruise: ride the engine's own forward speed; dives surge
+    const spdEff=fly.spd+Math.max(0,fly.vy)*DIVE_XV;
+    hvx += (heading*spdEff*SPD_PX-hvx)*ACCEL;
+  }
+  hvx=clamp(hvx,-VMAX,VMAX);
+  hx += hvx; P.pos=hx;
+  P.facing=heading;
+  legT+=dt;
+
+  if(phase==="out" && (Math.abs(hx-aimX)<ARRIVE || legT>OUT_MS)){ phase="home"; aimX=P.target; }
+  if(legT>LEG_MS && !forceLand){ forceLand=true; parking=true; aimX=hx; }           // failsafe: descend HERE, never teleport
+
+  const touchdown = parking && (forceLand || Math.abs(hx-P.target)<LAND_X*1.6) && fly.y>=LAND_Y && fly.vy>=0;
+  if(touchdown) land();
+}
+
+// ---------- perched idle: bout-structured schedule (activity flurries, real calm stretches) ----------
+// real birds are bursty, not metronomic: clusters of flits/glances, then long still spells.
+let lookHoldT=0, mood="calm", bout=0;
+function logn(median,sigma){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random();
+  const g=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); return median*Math.exp(sigma*g); }
+function glance(){ targetLook=Math.random()<.5?-1.2:1.2; lookHoldT=rnd(400,900); }
+function preen(){ if(P.flying||crouching) return; P.sy=0.94; P.tail=2;              // head dips, tail works — visible tidying
+  setTimeout(()=>{P.tail=0;},300); setTimeout(()=>{P.tail=2;},480);
+  setTimeout(()=>{P.tail=0; if(!crouching)P.sy=1;},rnd(650,950)); }
+function nextIdle(){
+  if(mood==="active"){
+    if(--bout<=0) mood="calm";
+    const r=Math.random();
+    if(r<.42){ crouchLaunch({wander:true}); idleT=Math.min(logn(650,0.5),4000); return; }
+    else if(r<.80) glance(); else preen();
+    idleT=Math.min(logn(650,0.5),4000);
+    if(mood==="calm") idleT+=Math.min(logn(2600,0.4),8000);
+  } else {
+    const r=Math.random();
+    if(r<.55){ preen(); idleT=Math.min(logn(4200,0.5),12000); }
+    else if(r<.80){ glance(); idleT=Math.min(logn(3400,0.5),10000); }
+    else { mood="active"; bout=2+Math.floor(rnd(0,4)); idleT=Math.min(logn(500,0.4),2500); }
+    if(Math.random()<.18) idleT+=rnd(6000,12000);                                    // an occasional properly long calm
+  }
+}
+function updatePerch(dt){
+  if(landT>0 && !crouching){ landT-=dt; const u=clamp(landT/170,0,1),s=Math.sin(u*Math.PI)*(1-u*0.4); P.sy=1-0.18*s; P.sx=1+0.13*s; if(landT<=0){P.sx=1;P.sy=1;} }
+  if(crouching) return;                                                              // the takeoff crouch owns the pose
+  if(rest>0){ rest-=dt; faceNewest(); return; }
+  if(REDUCE || !ready){ P.pos += (P.target-P.pos)*(1-Math.pow(0.88,dt/16.7)); faceNewest(); return; }  // calm settle; no flight
+  faceNewest();
+  if(lookHoldT>0){ lookHoldT-=dt; if(lookHoldT<=0) targetLook=0; }
+  idleT-=dt;
+  if(idleT<=0) nextIdle();
+}
+let targetLook=0;
+
+// ---------- conversation / camera ----------
+const START=70, GAP=230;
+const stage=document.getElementById("stage"), world=document.getElementById("world"), input=document.getElementById("in");
+let cards=[], camX=0; const worldX=i=>START+i*GAP; const gapAfter=i=>worldX(i)+camX+300+30;
+function newestX(){ return cards.length ? worldX(cards.length-1)+camX : (P.pos||0); }
+function faceNewest(){ P.facing = Math.sign(newestX()-P.pos) || -1; }   // turn toward the latest message (L/R)
+function focusChanged(){                                                // a new card / a click moved the focus
+  if(REDUCE || !ready) return;                                          // history still loading: just settle
+  if(P.flying){                                                         // redirect the in-progress flight to the new focus
+    phase="home"; aimX=P.target; parking=false; forceLand=false; legT=0; // a retarget starts a fresh leg (latch + failsafe cleared)
+    heading=Math.sign(aimX-hx)||heading; prevSide=Math.sign(P.target-hx);
+    fly.flapping=true; fly.wp=0; fly.flapsLeft=clamp(3+Math.floor(Math.abs(aimX-hx)/150),3,6); // re-arm a burst toward the new focus
+  }
+  else if(crouching){ pendingOpts={wander:false}; }                      // mid-crouch: retarget the pending takeoff
+  else { rest=0; crouchLaunch({wander:false}); }                         // crouch, leap, fly there
+}
+function add(role,text){ const i=cards.length, el=document.createElement("div");
+  el.className="card "+(role==="parrot"?"prt":"you"); el.style.left=worldX(i)+"px";
+  el.innerHTML='<div class="stem"></div><div class="box"><span class="who">'+(role==="parrot"?"parrot":"you")+'</span>'+text+'</div>';
+  el.querySelector(".box").onclick=()=>{ P.target=clamp(gapAfter(i),60,stage.clientWidth-60); focusChanged(); }; world.appendChild(el); cards.push({el});
+  cards.forEach((c,k)=>{c.el.classList.toggle("dim",k<cards.length-2);c.el.classList.toggle("live",k===cards.length-1);});
+  const W=stage.clientWidth; camX=Math.min(0,W*0.5-worldX(i)); world.style.transform="translateX("+camX+"px)"; P.target=clamp(gapAfter(i),60,W-60); focusChanged();
+}
+const replies=["A pager should mean a human has to decide right now. Everything else is a ticket — or an automation I still owe you. I tune alerts down ruthlessly; a noisy rotation is just training people to ignore the one page that matters.",
+  "k3s, not full k8s — five Talos nodes in a cupboard in Münster. Self-hosted everything, GitOps end to end. It's where the bad ideas go first, so the good ones survive production.",
+  "Honestly? Hire me to make your on-call boring. That is the entire pitch — logs loud, postmortems honest, pagers quiet.","That's outside what I've parroted. Ask the real one — he answers email, eventually."];
+let r=0;
+function ask(q){ if(!q.trim())return; add("you",q); setTimeout(()=>{ add("parrot",replies[r++%replies.length]); squawk(); },950); }
+
+// ---------- bubbles / squawk ----------
+let bubStyle="bubble";
+const KRAAS=["kraa!","skraa—","kra-kraa!","brrk!","squawk.","kraaa…","ekk!"];
+const bub=document.getElementById("bub");
+function birdHeadY(){ return RAIL_Y - FEET*SCALE - 10 - (P.flying?renderArc:0) - P.hop; }
+function positionBub(x){ const right=P.facing>0; bub.style.left=((right? x+22 : x-58)+(P.recoilX||0))+"px"; bub.style.top=birdHeadY()+"px"; }
+function fireBub(){ bub.classList.remove("go"); void bub.offsetWidth; bub.classList.add("go"); }
+let talkTimer=0;
+function squawk(text){
+  P.talk=true; P.crest=3; clearTimeout(talkTimer); talkTimer=setTimeout(()=>{P.talk=false;P.crest=0;},600+Math.random()*300);
+  bub.className=bubStyle; const t=text||KRAAS[Math.floor(Math.random()*KRAAS.length)];
+  if(bubStyle==="tag") bub.textContent="["+t.replace(/[!.…—]/g,"")+"]"; else bub.textContent=t;
+  bubTimer=820; positionBub(P.pos); fireBub();
+}
+
+// ---------- loop: FIXED-TIMESTEP physics + interpolated render ----------
+// The engine steps at a fixed STEP_MS (its tuned cadence) regardless of refresh
+// rate, so it behaves identically on 60/120/144Hz. The render interpolates the
+// bird's position between physics ticks so it stays smooth at full frame rate.
+let last=performance.now();
+function loop(now){
+  let dt=Math.min(100,now-last); last=now;                  // cap dt so a backgrounded tab can't spiral the catch-up
+  if(P.pos===null){ P.pos=stage.clientWidth*0.5; if(!P.target)P.target=P.pos; }
+  P.hop=0;
+  let rPos=P.pos, rArc=0, rPitch=P.pitch;                     // rendered (smoothed) position / arc / pitch
+  if(P.flying){
+    acc+=dt; let guard=0;
+    while(P.flying && acc>=STEP_MS && guard++<8){             // advance the engine in fixed ticks
+      pPos=P.pos; pArc=P.flyArc; pPitch=P.pitch;              // snapshot pre-tick state
+      updateFlight(STEP_MS);
+      acc-=STEP_MS;
+    }
+    if(P.flying){ const a=acc/STEP_MS; rPos=pPos+(P.pos-pPos)*a; rArc=pArc+(P.flyArc-pArc)*a; rPitch=pPitch+(P.pitch-pPitch)*a; }
+    else { acc=0; rPos=P.pos; rArc=0; }                       // landed during catch-up
+  } else {
+    updatePerch(dt); acc=0; rPos=P.pos;                       // grounded logic runs every frame (real-time timers)
+  }
+  renderArc=rArc; P.rpitch=rPitch;                            // published for the bubble / hit box / sprite raster
+  if(P.popT>0){ P.popT-=dt; const u=1-Math.max(0,P.popT)/P.popDur; P.hop+=Math.sin(u*Math.PI)*P.popH; }   // startle pop
+  if(P.recoilX){ P.recoilX*=Math.pow(0.86,dt/16); if(Math.abs(P.recoilX)<0.3)P.recoilX=0; }                // sideways recoil
+  // gaze: mouse wins; otherwise relax toward the idle glance target (dt-corrected: same speed on any refresh rate)
+  if(mouseX!=null){ const want=clamp((mouseX-rPos)/180,-1.6,1.6); P.look+=(want-P.look)*(1-Math.pow(0.8,dt/16.7)); }
+  else { P.look+=(targetLook-P.look)*(1-Math.pow(0.88,dt/16.7)); }
+  if(bubTimer>0){ bubTimer-=dt; positionBub(rPos); }
+  renderSprites(dt);
+  // perched
+  perched.style.opacity=P.flying?0:P.opacity;
+  perched.style.left=(rPos-perched.width/2)+"px"; perched.style.top=(RAIL_Y-FEET*SCALE)+"px";
+  perched.style.transform=`translateX(${P.recoilX||0}px) translateY(${-P.hop}px) rotate(${P.lean}rad) scaleX(${-P.facing*P.sx}) scaleY(${P.sy})`;
+  // flight
+  flight.style.display=P.flying?"block":"none";
+  if(P.flying){ flight.style.left=(rPos-flight.width/2)+"px"; flight.style.top=(RAIL_Y-rArc-FLY_ANCHOR)+"px"; flight.style.transform=`scaleX(${-P.facing})`; }
+  // hit area follows the bird — including its altitude, so the airborne bird is clickable
+  const hitW=P.flying?flight.width:perched.width;
+  hit.style.width=hitW+"px"; hit.style.left=(rPos-hitW/2)+"px"; hit.style.top=(RAIL_Y-FEET*SCALE-(P.flying?rArc:0))+"px";
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) last=performance.now(); });  // returning to the tab: no dt jump
+
+// ---------- interactions ----------
+function startle(){ // recoil hop + kraa — never launches (nor aborts-by-teleport) a flight
+  squawk();
+  if(P.flying){ fly.vy=Math.max(fly.vy-1.5,-3); fly.blink=2; return; }   // mid-air: a flinch fed INTO the physics, no teleport
+  cancelCrouch();                                                        // a fright aborts a pending takeoff
+  rest=Math.max(rest,500); idleT=Math.max(idleT,800); P.crest=3;
+  if(REDUCE) return;                                                     // reduced motion: voice + crest only, no hop
+  P.popT=P.popDur=300; P.popH=rnd(22,34); P.recoilX=(Math.random()<.5?-1:1)*rnd(14,26);
+}
+hit.addEventListener("click", startle);
+hit.addEventListener("mouseenter",()=>{ if(!P.flying && Math.random()<.55) squawk(); });
+stage.addEventListener("mousemove",e=>{ const rc=stage.getBoundingClientRect(); mouseX=e.clientX-rc.left; });
+stage.addEventListener("mouseleave",()=>{ mouseX=null; });
+(function ambient(){ setTimeout(()=>{ if(!P.talk && !P.flying && !REDUCE && Math.random()<.5) squawk(); ambient(); }, rnd(6000,17000)); })();  // non-periodic voice
+
+// ---------- switchers / seed ----------
+const bubGrp=document.getElementById("bubGrp");
+["bubble","tag"].forEach(k=>{ const b=document.createElement("button"); b.textContent=k; b.onclick=()=>{ bubStyle=k;
+  [...bubGrp.querySelectorAll("button")].forEach(x=>x.classList.toggle("on",x.textContent===k)); squawk("kraa!"); }; bubGrp.appendChild(b); });
+bubGrp.querySelector("button").classList.add("on");
+
+input.addEventListener("keydown",e=>{ if(e.key==="Enter"){ ask(input.value); input.value=""; }});
+["on-call philosophy","k8s at home?","why hire you?"].forEach(ch=>{ const b=document.createElement("button"); b.textContent=ch; b.onclick=()=>ask(ch); document.getElementById("chips").appendChild(b); });
+add("you","what's your on-call philosophy?"); setTimeout(()=>add("parrot",replies[0]),350); setTimeout(()=>add("you","do you actually run k8s at home?"),700); setTimeout(()=>add("parrot",replies[1]),1050);
+setTimeout(()=>{ ready=true; idleT=rnd(1500,2800); faceNewest(); }, 1700);   // history settled -> the bird starts living
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+---
+import { site } from "@data/site";
+const { colophon } = site;
+---
+<!-- the companion słowik perches on this border at the end of the journey;
+     after 23:00 in Münster it sleeps here (see lib/slowikCompanion.ts) -->
+<footer id="colophon" class="border-t border-border" data-perch="footer">
+  <div class="mx-auto max-w-[1120px] px-4 py-12 sm:px-6 sm:py-16">
+    <div class="flex items-baseline gap-4">
+      <span class="mono-label text-accent">[08]</span>
+      <h2 class="text-2xl font-bold tracking-tight">Colophon</h2>
+    </div>
+    <div class="mt-8 grid gap-8 font-mono text-xs leading-relaxed text-muted sm:grid-cols-3">
+      {colophon.notes.map((n) => <p>{n}</p>)}
+    </div>
+    <div class="mono-label mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
+      <span>{colophon.copyright} · {colophon.version} · <span class="text-accent">{colophon.commit}</span></span>
+      <span>view: <a href="/" class="text-accent">site</a> · <a href="/404" class="transition-colors hover:text-accent active:text-accent">404</a></span>
+    </div>
+  </div>
+</footer>

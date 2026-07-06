@@ -1,0 +1,126 @@
+---
+import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import { site } from "@data/site";
+import PageLoader from "../components/PageLoader.astro";
+import SEO from "@components/SEO.astro";
+
+// One reconciled head interface (the four audit dimensions each wanted their own —
+// merged here). SEO.astro owns the meta tags; Base renders the JSON-LD.
+interface Props {
+  title?: string;
+  description?: string;
+  type?: "website" | "article" | "profile";
+  image?: string;
+  imageAlt?: string;
+  noindex?: boolean;
+  article?: { publishedTime?: string; modifiedTime?: string; tags?: string[] };
+  schema?: unknown;
+}
+const {
+  title = site.meta.title,
+  description = site.meta.description,
+  type, image, imageAlt, noindex, article, schema,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, site.meta.url).href;
+const jsonld = schema ? JSON.stringify(schema).replace(/</g, "\\u003c") : null;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="generator" content={Astro.generator} />
+
+    <script is:inline>
+      // Arm scroll reveals before first paint (no content flash), but never hide
+      // content under reduced motion or if the reveal script fails to run.
+      (function () {
+        var d = document.documentElement;
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        d.classList.add("reveal-armed");
+        setTimeout(function () { d.classList.add("reveal-fallback"); }, 3000);
+      })();
+    </script>
+
+    <SEO title={title} description={description} canonical={canonical} type={type} image={image} imageAlt={imageAlt} noindex={noindex} article={article} />
+
+    <!-- icons + manifest -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- feeds + sitemap -->
+    <link rel="alternate" type="application/rss+xml" title="Krystian Słowik — writing" href="/rss.xml" />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+
+    {jsonld && <script type="application/ld+json" set:html={jsonld} />}
+
+    <ClientRouter />
+  </head>
+  <body class="bg-bg text-fg font-sans antialiased">
+    <PageLoader />
+    <script>
+      // The page's pet: ONE słowik for the whole journey. It hatches only on
+      // pages that offer perches ([data-perch]) and is destroyed before every
+      // ClientRouter swap so a navigation can never leave two birds alive.
+      import { getSlowik, type PerchKind } from "../lib/slowikCompanion";
+      const KINDS = new Set(["rule", "panel", "strip", "footer", "wire", "name"]);
+      const hatch = () => {
+        const els = document.querySelectorAll<HTMLElement>("[data-perch]");
+        if (!els.length) return;
+        const slowik = getSlowik();
+        els.forEach((el) => {
+          const kind = el.dataset.perch ?? "";
+          if (!KINDS.has(kind) || el.dataset.perchId) return;
+          el.dataset.perchId = slowik.register(el, kind as PerchKind);
+        });
+      };
+      hatch();
+      document.addEventListener("astro:page-load", hatch);
+      document.addEventListener("astro:before-swap", () => {
+        window.__ksSlowik?.destroy();
+        document.querySelectorAll<HTMLElement>("[data-perch-id]").forEach((el) => delete el.dataset.perchId);
+      });
+    </script>
+    <a
+      href="#content"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-elevated focus:text-fg focus:px-3 focus:py-2 focus:rounded"
+      >skip to content</a
+    >
+    <slot />
+
+    <script>
+      // microinteractions / tasties
+      // preventScroll: focusing the input must not cancel/override the in-flight
+      // smooth scroll to #chat (that race left the page stranded at the top).
+      const focusChat = () => document.getElementById("slowik-input")?.focus({ preventScroll: true });
+      document.addEventListener("keydown", (e) => {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (e.key === "/" && tag !== "INPUT" && tag !== "TEXTAREA") {
+          e.preventDefault();
+          document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
+          setTimeout(focusChat, 420);
+        }
+      });
+      document.addEventListener("click", (e) => {
+        // starter pills (hero): scroll to the chat, then hand the question to
+        // the słowik island via a custom event — it sends it automatically.
+        const pill = (e.target as HTMLElement).closest<HTMLElement>("[data-slowik-ask]");
+        if (pill) {
+          const text = pill.dataset.slowikAsk ?? "";
+          document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
+          setTimeout(() => window.dispatchEvent(new CustomEvent("slowik:ask", { detail: text })), 340);
+          return;
+        }
+        if ((e.target as HTMLElement).closest('a[href="#chat"]')) setTimeout(focusChat, 520);
+      });
+      console.log(
+        "%c the słowik is just gpt + my notes. the emperor's court preferred the clockwork bird — don't.\n press / to ask it something. → krystian",
+        "color:#e0992e;font-family:monospace;font-size:12px",
+      );
+    </script>
+  </body>
+</html>

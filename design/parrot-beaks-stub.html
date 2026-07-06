@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>parrot — short stub variations</title>
+<style>
+  :root{ --bg:#0e0e0e; --panel:#161616; --border:#262626; --fg:#e6e6e6; --muted:#7a7a7a; --amber:#e0992e;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--mono);line-height:1.5;padding:48px 24px 96px}
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 40px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  figure{margin:0;border:1px solid var(--border);background:var(--panel);border-radius:4px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  canvas{image-rendering:pixelated;display:block}
+  .cap{color:var(--muted);font-size:12px;text-align:center}
+  .cap b{color:var(--amber);font-weight:500}
+  .num{color:var(--amber);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>parrot — short stub · 10 variations</h1>
+  <p class="sub">same approved head, stub beak fine-tuned · 1-bit amber · pick a number</p>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const AMBER=[224,153,46];
+const NW=34, NH=24;
+
+// 10 variations around "short stub"
+const BEAKS=[
+  {name:"stub — original",     pts:[[13,10],[6,12],[5,17],[9,16],[12,14]]},
+  {name:"stub — longer",       pts:[[13,10],[4,12],[4,17],[9,16],[12,14]]},
+  {name:"stub — pointier",     pts:[[13,10],[5,13],[7,16],[10,15],[12,13]]},
+  {name:"stub — hooked tip",   pts:[[13,10],[6,12],[5,18],[8,17],[10,15],[12,13]]},
+  {name:"stub — taller/chunky",pts:[[14,9],[6,11],[5,18],[9,17],[12,14]]},
+  {name:"stub — blunt round",  pts:[[13,11],[7,12],[6,16],[9,16],[12,14]]},
+  {name:"stub — downturned",   pts:[[13,10],[6,13],[5,18],[8,18],[11,15],[12,13]]},
+  {name:"stub — flat top",     pts:[[14,10],[5,11],[5,16],[9,15],[12,13]]},
+  {name:"stub — minimal tiny", pts:[[12,11],[7,13],[7,16],[10,15],[11,13]]},
+  {name:"stub — wide base",    pts:[[14,9],[7,11],[6,17],[10,16],[13,13]]},
+];
+
+function drawHeadBeak(c, beak){
+  c.clearRect(0,0,NW,NH); c.globalCompositeOperation='source-over'; c.fillStyle='#fff';
+  c.beginPath(); c.arc(18,13,9,0,Math.PI*2); c.fill();                          // head
+  c.beginPath(); c.moveTo(20,6); c.lineTo(32,3); c.lineTo(23,13); c.closePath(); c.fill();  // crest 1
+  c.beginPath(); c.moveTo(17,5); c.lineTo(26,3); c.lineTo(21,11); c.closePath(); c.fill();  // crest 2
+  c.beginPath(); c.moveTo(beak[0][0],beak[0][1]); for(let i=1;i<beak.length;i++) c.lineTo(beak[i][0],beak[i][1]); c.closePath(); c.fill();
+  c.globalCompositeOperation='destination-out'; c.beginPath(); c.arc(17,11.6,2.2,0,Math.PI*2); c.fill();  // eye
+  c.globalCompositeOperation='source-over';
+}
+
+function render(canvas, beak, scale){
+  const off=document.createElement('canvas'); off.width=NW; off.height=NH;
+  drawHeadBeak(off.getContext('2d'), beak);
+  const src=off.getContext('2d').getImageData(0,0,NW,NH).data;
+  canvas.width=NW*scale; canvas.height=NH*scale;
+  const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='rgb('+AMBER.join(',')+')';
+  for(let y=0;y<NH;y++)for(let x=0;x<NW;x++){
+    if(src[(y*NW+x)*4+3]>128) ctx.fillRect(x*scale,y*scale,scale,scale);
+  }
+}
+
+const grid=document.getElementById('grid');
+BEAKS.forEach((b,i)=>{
+  const fig=document.createElement('figure');
+  const big=document.createElement('canvas');
+  const cap=document.createElement('div'); cap.className='cap';
+  cap.innerHTML='<span class="num">'+(i+1)+'</span> — <b>'+b.name.replace('stub — ','')+'</b>';
+  const sizes=document.createElement('div'); sizes.style.display='flex'; sizes.style.gap='10px'; sizes.style.alignItems='flex-end';
+  const s16=document.createElement('canvas'), s24=document.createElement('canvas');
+  fig.appendChild(big);
+  sizes.appendChild(s16); sizes.appendChild(s24);
+  fig.appendChild(sizes);
+  fig.appendChild(cap);
+  grid.appendChild(fig);
+  render(big, b.pts, 8);
+  render(s16, b.pts, 2);
+  render(s24, b.pts, 3);
+});
+</script>
+</body>
+</html>

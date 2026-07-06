@@ -1,0 +1,16 @@
+---
+import { site } from "@data/site";
+import SectionHeading from "./SectionHeading.astro";
+import SlowikChat from "./SlowikChat.svelte";
+const { slowik } = site;
+---
+<section id="chat" class="mx-auto max-w-[1120px] px-4 py-14 sm:px-6 sm:py-20">
+  <SectionHeading index="06" title="Ask the słowik" />
+  <p class="max-w-xl text-fg-2" data-reveal>{slowik.intro}</p>
+  <div class="mt-4" data-reveal>
+    {/* client:only — the chat is fully dynamic (physics bird, client-seeded cards),
+        so SSR adds nothing and Svelte 5 hydration of the empty shell was fragile. */}
+    <SlowikChat client:only="svelte" slowik={slowik} />
+    <noscript><p class="mono-label">the słowik needs JavaScript — email me instead: hej@krystianslowik.com</p></noscript>
+  </div>
+</section>

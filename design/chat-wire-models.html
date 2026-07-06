@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>chat wire — movement models × bubbles</title>
+<style>
+  :root{ --bg:#0e0e0e; --panel:#191919; --bd:#2b2b2b; --bd2:#3a2e16; --fg:#e6e6e6; --muted:#7a7a7a; --amber:#e0992e;
+    --mono:"JetBrains Mono",ui-monospace,monospace; --sans:"Helvetica Neue",Arial,sans-serif; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);padding:40px 24px 120px}
+  .wrap{max-width:1120px;margin:0 auto}
+  .kick{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.08em}
+  h1{font-size:34px;font-weight:700;letter-spacing:-.02em;margin:.15em 0 0}
+  .row{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;align-items:center}
+  .grp{display:flex;gap:6px;align-items:center}
+  .grp .lab{font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:4px}
+  .grp button{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--bd);background:transparent;border-radius:4px;padding:6px 11px;cursor:pointer}
+  .grp button.on{color:var(--bg);background:var(--amber);border-color:var(--amber)}
+  .desc{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;min-height:16px}
+
+  .stage{position:relative;margin-top:18px;height:380px;overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+  .rail{position:absolute;left:0;right:0;top:200px;height:1px;background:var(--bd)}
+  #world{position:absolute;inset:0;transition:transform .6s cubic-bezier(.33,1,.5,1)}
+  .card{position:absolute;width:300px}
+  .card .stem{position:absolute;left:18px;width:1px;background:var(--bd)}
+  .card .box{position:relative;border:1px solid var(--bd);background:var(--panel);border-radius:6px;padding:11px 14px;font-size:14px;line-height:1.55;overflow:hidden;max-height:118px;cursor:pointer;transition:max-height .35s,border-color .2s}
+  .card .box::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30px;background:linear-gradient(transparent,var(--panel))}
+  .card .box:hover{max-height:440px;border-color:var(--bd2)} .card .box:hover::after{opacity:0}
+  .card.live .box{max-height:440px} .card.live .box::after{opacity:0}
+  .card .who{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:4px}
+  .card.prt .who{color:var(--amber)} .card.prt .box{border-color:var(--bd2);background:#1c1712} .card.prt .box::after{background:linear-gradient(transparent,#1c1712)}
+  .card.you{top:212px} .card.you .stem{top:-12px;height:12px}
+  .card.prt{bottom:212px} .card.prt .stem{bottom:-12px;height:12px}
+  .card.dim .box{opacity:.5}
+
+  canvas.spr{position:absolute;image-rendering:pixelated;z-index:4;pointer-events:none;transform-origin:50% 88%}
+  #flight{display:none;z-index:5}
+  #hit{position:absolute;z-index:6;cursor:pointer}
+
+  /* bubbles */
+  #bub{position:absolute;z-index:7;pointer-events:none;font-family:var(--mono);font-size:13px;white-space:nowrap;opacity:0}
+  #bub.puff{color:var(--amber);text-shadow:0 1px 3px #000}
+  #bub.puff.go{animation:puff .75s ease-out}
+  @keyframes puff{0%{opacity:0;transform:translateY(6px) scale(.8)}22%{opacity:1;transform:translateY(0) scale(1.08)}70%{opacity:1}100%{opacity:0;transform:translateY(-16px)}}
+  #bub.bubble{color:var(--fg);background:#222;border:1px solid var(--bd2);border-radius:10px;padding:5px 10px}
+  #bub.bubble::after{content:"";position:absolute;left:14px;bottom:-6px;width:10px;height:10px;background:#222;border-right:1px solid var(--bd2);border-bottom:1px solid var(--bd2);transform:rotate(45deg)}
+  #bub.bubble.go{animation:pop .8s ease-out}
+  @keyframes pop{0%{opacity:0;transform:translateY(8px) scale(.7)}20%{opacity:1;transform:translateY(0) scale(1.06)}80%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-6px)}}
+  #bub.tag{color:var(--amber)} #bub.tag.go{animation:puff .8s ease-out}
+  #bub.wave{width:34px;height:24px} #bub.wave .arc{position:absolute;border:1.5px solid var(--amber);border-radius:50%;left:0;top:50%}
+  #bub.wave.go{animation:wv .6s ease-out}
+  @keyframes wv{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+
+  .bar{display:flex;align-items:center;gap:12px;max-width:680px;margin:22px auto 0;border:1px solid var(--bd);border-radius:6px;padding:12px 16px}
+  .bar .p{color:var(--amber);font-family:var(--mono)} .bar input{flex:1;background:transparent;border:0;outline:0;color:var(--fg);font-family:var(--mono);font-size:14px}
+  .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .chips button{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--bd);background:transparent;border-radius:3px;padding:5px 10px;cursor:pointer}
+  .chips button:hover{color:var(--amber);border-color:var(--bd2)}
+  .hint{text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kick">[06] concept · wire · models × bubbles</p>
+  <h1>Ask the parrot</h1>
+  <div class="row">
+    <div class="grp" id="moveGrp"><span class="lab">move</span></div>
+    <div class="grp" id="bubGrp"><span class="lab">bubble</span></div>
+  </div>
+  <div class="desc" id="desc"></div>
+
+  <div class="stage" id="stage">
+    <div class="rail"></div>
+    <div id="world"></div>
+    <canvas class="spr" id="perched"></canvas>
+    <canvas class="spr" id="flight"></canvas>
+    <div id="hit"></div>
+    <div id="bub"></div>
+  </div>
+
+  <div class="bar"><span class="p">›</span><input id="in" placeholder="ask about on-call, k8s, or me…" autocomplete="off" /><span style="color:var(--muted);font-family:var(--mono)">↵</span></div>
+  <div class="chips" id="chips"></div>
+  <p class="hint">mix a move × a bubble · click a card to send the parrot there · click the bird to squawk</p>
+</div>
+
+<script>
+const AMBER=[224,153,46], FULL={w:40,h:46}, FLY={w:56,h:108}, FLY_BASE=36;
+function drawFull(c,o){
+  c.clearRect(0,0,FULL.w,FULL.h); c.fillStyle="#fff"; const lift=o.crestUp||0,tf=o.tailFlick||0,es=o.eyeShift||0;
+  c.beginPath(); c.ellipse(23,24,9,12,0,0,7); c.fill(); c.beginPath(); c.arc(18,13,9,0,7); c.fill();
+  c.beginPath(); c.moveTo(20,5); c.lineTo(32,2-lift); c.lineTo(23,13); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(17,4); c.lineTo(26,2-lift); c.lineTo(21,11); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(13,10); c.lineTo(6,12); c.lineTo(5,17); c.lineTo(9,16); c.lineTo(12,14); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(22,33); c.lineTo(33,30); c.lineTo(28+tf,46); c.lineTo(21,44); c.closePath(); c.fill();
+  c.strokeStyle="#fff"; c.lineWidth=1.6; c.beginPath(); c.moveTo(17,34); c.lineTo(17,40); c.moveTo(23,34); c.lineTo(23,40); c.stroke();
+  if(o.mouth==="open"){ c.beginPath(); c.moveTo(6,18); c.lineTo(10,18); c.lineTo(10,21); c.lineTo(7,21); c.closePath(); c.fill();
+    c.globalCompositeOperation="destination-out"; c.fillRect(5,17,7,1.1); c.globalCompositeOperation="source-over"; }
+  c.globalCompositeOperation="destination-out";
+  if(o.eye==="closed") c.fillRect(15+es,11.4,6,1.4); else { c.beginPath(); c.arc(17+es,11.6,2.2,0,7); c.fill(); }
+  c.lineWidth=1.6; c.beginPath(); c.moveTo(22,17); c.quadraticCurveTo(29,22,27,31); c.stroke(); c.globalCompositeOperation="source-over";
+}
+function drawFlyPose(c,o){
+  c.clearRect(0,0,FLY.w,FLY.h); c.save(); c.translate(0,FLY_BASE); c.fillStyle="#fff";
+  c.beginPath(); c.ellipse(31,26,13,7,0,0,7); c.fill(); c.beginPath(); c.arc(15,19,8,0,7); c.fill();
+  c.beginPath(); c.moveTo(17,12); c.lineTo(26,9); c.lineTo(20,18); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(11,16); c.lineTo(4,18); c.lineTo(4,22); c.lineTo(7,22); c.lineTo(10,20); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(39,23); c.lineTo(52,25); c.lineTo(54,27); c.lineTo(52,29); c.lineTo(39,31); c.closePath(); c.fill();
+  let w; if(o.wing==="up")w=[[25,26],[28,9],[31,1],[39,15],[35,27]]; else if(o.wing==="down")w=[[25,25],[29,39],[34,45],[45,33],[34,26]]; else w=[[25,24],[37,17],[50,18],[45,26],[34,27]];
+  c.beginPath(); c.moveTo(w[0][0],w[0][1]); for(let i=1;i<w.length;i++)c.lineTo(w[i][0],w[i][1]); c.closePath(); c.fill();
+  c.globalCompositeOperation="destination-out"; c.beginPath(); c.arc(14,17.6,2.2,0,7); c.fill(); c.globalCompositeOperation="source-over";
+  c.restore();
+}
+function raster(fn,W,H,o){ const off=document.createElement("canvas"); off.width=W; off.height=H; fn(off.getContext("2d"),o);
+  const s=off.getContext("2d").getImageData(0,0,W,H).data; const b=document.createElement("canvas"); b.width=W;b.height=H;
+  const bc=b.getContext("2d"),img=bc.createImageData(W,H);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4; if(s[i+3]>128){ if(s[i]<=200&&((x+y)&1))continue; img.data[i]=AMBER[0];img.data[i+1]=AMBER[1];img.data[i+2]=AMBER[2];img.data[i+3]=255; }}
+  bc.putImageData(img,0,0); return b;
+}
+const SCALE=2, FEET=40, RAIL_Y=200;
+const perched=document.getElementById("perched"), flight=document.getElementById("flight"), hit=document.getElementById("hit");
+perched.width=FULL.w*SCALE; perched.height=FULL.h*SCALE; flight.width=FLY.w*SCALE; flight.height=FLY.h*SCALE;
+const pcx=perched.getContext("2d"); pcx.imageSmoothingEnabled=false; const fcx=flight.getContext("2d"); fcx.imageSmoothingEnabled=false;
+hit.style.width=(FULL.w*SCALE)+"px"; hit.style.height=(FULL.h*SCALE)+"px";
+
+const P={pos:null,target:0,hop:0,sx:1,sy:1,facing:-1,look:0,crest:0,tail:0,blink:false,talk:false,opacity:1,lean:0,flying:false,wing:"mid",popT:0,popDur:1,popH:0,recoilX:0};
+let mouseX=null, bubTimer=0;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+let blinkT=0;
+function renderSprites(dt){ blinkT+=dt;
+  const o={eyeShift:Math.round(P.look),crestUp:P.crest,tailFlick:P.tail};
+  o.eye=(P.blink||blinkT%3000<130)?"closed":"open"; o.mouth=P.talk?(Math.floor(blinkT/150)%2?"open":"closed"):"closed";
+  pcx.clearRect(0,0,perched.width,perched.height); pcx.drawImage(raster(drawFull,FULL.w,FULL.h,o),0,0,perched.width,perched.height);
+  if(P.flying){ fcx.clearRect(0,0,flight.width,flight.height); fcx.drawImage(raster(drawFlyPose,FLY.w,FLY.h,{wing:P.wing}),0,0,flight.width,flight.height); }
+}
+
+// ---------- movement models ----------
+let H=null, rest=0, idleT=0, anim=null, microHop=0, microDur=1, microH=0;
+function hopFSM(dt,cfg,idle){
+  if(H){ const c=H.c; H.tp+=dt;
+    if(H.phase==="aim"){const u=Math.min(1,H.tp/c.antic);P.sy=1-0.13*Math.sin(u*Math.PI/2); if(H.tp>=c.antic){H.phase="air";H.tp=0;P.look=0;}}
+    else if(H.phase==="air"){const u=Math.min(1,H.tp/H.dur);P.pos=H.from+(H.to-H.from)*(1-Math.pow(1-u,2));P.hop=Math.sin(u*Math.PI)*H.h;P.sy=1+0.1*Math.sin(u*Math.PI);P.tail=Math.sin(u*Math.PI)*2;if(u>=1){H.phase="land";H.tp=0;P.hop=0;}}
+    else{const u=Math.min(1,H.tp/c.landDur),s=Math.sin(u*Math.PI)*(1-u*0.4);P.sy=1-0.16*s;P.sx=1+0.12*s;if(H.tp>=c.landDur){H=null;P.sx=1;P.sy=1;P.tail=0;rest=rnd(60,180);}}
+    return; }
+  if(rest>0){rest-=dt;return;}
+  const d=P.target-P.pos;
+  if(Math.abs(d)>5){const step=Math.sign(d)*Math.min(Math.abs(d),rnd(70,130));H={to:P.pos+step,from:P.pos,phase:"aim",tp:0,dur:rnd(210,340),h:rnd(18,30),c:{antic:70,landDur:110}};P.facing=Math.sign(d);P.look=P.facing>0?1.4:-1.4;}
+  else{P.facing=-1;idleT-=dt;if(idleT<=0){idleT=rnd(1400,4000);if(Math.random()<.5){H={to:P.pos+rnd(-4,4),from:P.pos,phase:"air",tp:0,dur:rnd(160,220),h:rnd(6,11),c:{antic:0,landDur:90}};}else{P.look=Math.random()<.5?-1.3:1.3;setTimeout(()=>P.look=0,rnd(350,650));}}}
+}
+const MOVES={
+  hop:{desc:"perched · ballistic hops between gaps", step(dt){ P.flying=false; hopFSM(dt); } },
+
+  fly:{desc:"takes off, flies over (flapping) and lands — then keeps flitting left↔right & hopping at rest", step(dt){
+    if(anim){ anim.t+=dt; const u=Math.min(1,anim.t/anim.dur); P.flying=true;
+      P.pos=anim.from+(anim.to-anim.from)*(u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2);
+      P.flyArc=Math.sin(u*Math.PI)*(anim.arc||60); P.wing=["down","mid","up","mid"][Math.floor(anim.t/110)%4];
+      P.facing=Math.sign(anim.to-anim.from)||P.facing;
+      if(u>=1){ anim=null; P.flying=false; P.flyArc=0; rest=rnd(140,280); }
+      return; }
+    P.flying=false; P.flyArc=0;
+    if(rest>0){ rest-=dt; faceNewest(); return; }
+    const d=P.target-P.pos;
+    if(Math.abs(d)>8){ anim={t:0,from:P.pos,to:P.target,dur:460+Math.abs(d)*0.5,arc:46+Math.min(60,Math.abs(d)*0.18)}; return; }
+    faceNewest();
+    if(microHop>0){ microHop-=dt; const u=1-microHop/microDur; P.hop=Math.sin(u*Math.PI)*microH; if(microHop<=0)P.hop=0; }
+    idleT-=dt;
+    if(idleT<=0){ idleT=rnd(900,2600); const roll=Math.random();
+      if(roll<.45){ microHop=microDur=rnd(150,300); microH=rnd(5,18); }                        // hop in place, small↔big
+      else if(roll<.82){ const W=stage.clientWidth, mag=(Math.random()<.35?rnd(180,320):rnd(40,160)), // mix short & long flits
+        off=(Math.random()<.5?-1:1)*mag;
+        anim={t:0,from:P.pos,to:Math.max(60,Math.min(W-60,P.pos+off)),dur:300+mag*1.25,arc:22+mag*0.16}; }
+      else { P.look=Math.random()<.5?-1:1; setTimeout(()=>P.look=0,500); }
+    }
+  } },
+
+  hang:{desc:"hangs UNDER the wire, shimmies along with a swing", step(dt){ P.flying=false;
+    const d=P.target-P.pos; if(Math.abs(d)>3){ P.pos+=Math.sign(d)*Math.min(Math.abs(d),0.9*dt*8); P.facing=Math.sign(d);
+      const s=Math.sin(performance.now()/140); P.lean=s*0.10; P.hop=Math.abs(s)*2; }
+    else { const s=Math.sin(performance.now()/600); P.lean=s*0.06; P.hop=0; P.facing=-1; } } },
+
+  glide:{desc:"slides along the wire like a cursor, leaning into motion — no hops", step(dt){ P.flying=false;
+    const d=P.target-P.pos; P.pos+=d*Math.min(1,dt/240); P.lean=Math.max(-.14,Math.min(.14,d*0.004)); P.hop=Math.sin(performance.now()/700)*1.5;
+    if(Math.abs(d)<2){ idleT-=dt; if(idleT<=0){idleT=rnd(2000,4500); P.look=Math.random()<.5?-1:1; setTimeout(()=>P.look=0,500);} } } },
+
+  teleport:{desc:"doesn't travel — blinks out and reappears at the target with a puff", step(dt){ P.flying=false;
+    if(!anim && Math.abs(P.target-P.pos)>8){ anim={t:0,ph:"out"}; }
+    if(anim){ anim.t+=dt;
+      if(anim.ph==="out"){ const u=Math.min(1,anim.t/150); P.opacity=1-u; P.sx=1-0.3*u; P.sy=1+0.3*u;
+        if(u>=1){ squawkPuffAt(P.pos); P.pos=P.target; anim.ph="in"; anim.t=0; squawkPuffAt(P.pos); } }
+      else { const u=Math.min(1,anim.t/180); P.opacity=u; P.sx=1-0.3*(1-u); P.sy=1+0.3*(1-u); if(u>=1){anim=null;P.opacity=1;P.sx=1;P.sy=1;} } }
+    else { idleT-=dt; if(idleT<=0){idleT=rnd(2000,5000); P.blink=true; setTimeout(()=>P.blink=false,160);} } } },
+};
+let move="hop";
+function squawkPuffAt(x){ /* small spark on teleport */ bub.textContent="·"; positionBub(x); fireBub(); }
+
+// ---------- bubbles ----------
+let bubStyle="bubble";
+const KRAAS=["kraa!","skraa—","kra-kraa!","brrk!","squawk.","kraaa…","ekk!"];
+const bub=document.getElementById("bub");
+function positionBub(x){ const right=P.facing>0; bub.style.left=(right? x+22 : x-58)+"px"; bub.style.top=(RAIL_Y-FEET*SCALE-10)+"px"; }
+function fireBub(){ bub.classList.remove("go"); void bub.offsetWidth; bub.classList.add("go"); }
+let talkTimer=0;
+function squawk(text){
+  P.talk=true; P.crest=3; clearTimeout(talkTimer); talkTimer=setTimeout(()=>{P.talk=false;P.crest=0;},600+Math.random()*300);
+  bub.className=bubStyle; const t=text||KRAAS[Math.floor(Math.random()*KRAAS.length)];
+  if(bubStyle==="tag") bub.textContent="["+t.replace(/[!.…—]/g,"")+"]";
+  else if(bubStyle==="wave") bub.innerHTML='<span class="arc" style="width:8px;height:8px"></span><span class="arc" style="width:16px;height:16px;left:4px"></span><span class="arc" style="width:24px;height:24px;left:8px"></span>';
+  else bub.textContent=t;
+  bubTimer=820; positionBub(P.pos); fireBub();
+}
+
+// ---------- conversation ----------
+const START=70, GAP=230;
+const stage=document.getElementById("stage"), world=document.getElementById("world"), input=document.getElementById("in");
+let cards=[], camX=0; const worldX=i=>START+i*GAP; const gapAfter=i=>worldX(i)+camX+300+30;
+function newestX(){ return cards.length ? worldX(cards.length-1)+camX : P.pos; }
+function faceNewest(){ P.facing = Math.sign(newestX()-P.pos) || -1; }  // turn toward the latest message (L/R)
+function add(role,text){ const i=cards.length, el=document.createElement("div");
+  el.className="card "+(role==="parrot"?"prt":"you"); el.style.left=worldX(i)+"px";
+  el.innerHTML='<div class="stem"></div><div class="box"><span class="who">'+(role==="parrot"?"parrot":"you")+'</span>'+text+'</div>';
+  el.querySelector(".box").onclick=()=>{P.target=gapAfter(i);}; world.appendChild(el); cards.push({el});
+  cards.forEach((c,k)=>{c.el.classList.toggle("dim",k<cards.length-2);c.el.classList.toggle("live",k===cards.length-1);});
+  const W=stage.clientWidth; camX=Math.min(0,W*0.5-worldX(i)); world.style.transform="translateX("+camX+"px)"; P.target=gapAfter(i);
+}
+const replies=["A pager should mean a human has to decide right now. Everything else is a ticket — or an automation I still owe you. I tune alerts down ruthlessly; a noisy rotation is just training people to ignore the one page that matters.",
+  "k3s, not full k8s — five Talos nodes in a cupboard in Münster. Self-hosted everything, GitOps end to end. It's where the bad ideas go first, so the good ones survive production.",
+  "Honestly? Hire me to make your on-call boring. That is the entire pitch — logs loud, postmortems honest, pagers quiet.","That's outside what I've parroted. Ask the real one — he answers email, eventually."];
+let r=0;
+function ask(q){ if(!q.trim())return; add("you",q); setTimeout(()=>{ add("parrot",replies[r++%replies.length]); squawk(); },950); }
+
+// ---------- loop ----------
+let last=performance.now();
+function loop(now){ const dt=Math.min(48,now-last); last=now;
+  if(P.pos===null) P.pos=stage.clientWidth*0.5;
+  P.hop=0;                                   // ambient hop reset; the model adds to it
+  MOVES[move].step(dt);
+  if(P.popT>0){ P.popT-=dt; const u=1-Math.max(0,P.popT)/P.popDur; P.hop+=Math.sin(u*Math.PI)*P.popH; }   // startle pop (on top)
+  if(P.recoilX){ P.recoilX*=Math.pow(0.86,dt/16); if(Math.abs(P.recoilX)<0.3)P.recoilX=0; }                // sideways recoil springs back
+  if(mouseX!=null){ const want=Math.max(-1.6,Math.min(1.6,(mouseX-P.pos)/180)); P.look+=(want-P.look)*0.2; }// gaze tracks the cursor
+  if(bubTimer>0){ bubTimer-=dt; positionBub(P.pos); }                                                       // bubble follows the bird
+  renderSprites(dt);
+  // perched
+  perched.style.opacity=P.flying?0:P.opacity;
+  perched.style.left=(P.pos-perched.width/2)+"px"; perched.style.top=(RAIL_Y-FEET*SCALE)+"px";
+  perched.style.transform=`translateX(${P.recoilX||0}px) translateY(${-P.hop}px) rotate(${P.lean}rad) scaleX(${-P.facing*P.sx}) scaleY(${P.sy})`;
+  // flight
+  flight.style.display=P.flying?"block":"none";
+  if(P.flying){ flight.style.left=(P.pos-flight.width/2)+"px"; flight.style.top=(RAIL_Y-(P.flyArc||0)-flight.height*0.62)+"px"; flight.style.transform=`scaleX(${-P.facing})`; }
+  // hit area follows
+  hit.style.left=(P.pos-hit.offsetWidth/2)+"px"; hit.style.top=(RAIL_Y-FEET*SCALE)+"px";
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function startle(){ squawk(); anim=null; rest=0; P.popT=P.popDur=300; P.popH=rnd(22,34); P.recoilX=(Math.random()<.5?-1:1)*rnd(14,26); P.crest=3; }
+hit.addEventListener("click", startle); hit.addEventListener("mouseenter",()=>{ if(Math.random()<.55) squawk(); });
+stage.addEventListener("mousemove",e=>{ const r=stage.getBoundingClientRect(); mouseX=e.clientX-r.left; });
+stage.addEventListener("mouseleave",()=>{ mouseX=null; });
+setInterval(()=>{ if(!P.talk && Math.random()<.3) squawk(); }, 7000);
+
+// ---------- switchers ----------
+const moveGrp=document.getElementById("moveGrp"), bubGrp=document.getElementById("bubGrp"), desc=document.getElementById("desc");
+Object.keys(MOVES).forEach(k=>{ const b=document.createElement("button"); b.textContent=k; b.onclick=()=>{ move=k; anim=null;H=null;rest=0;P.sx=1;P.sy=1;P.hop=0;P.lean=0;P.opacity=1;P.flying=false;
+  [...moveGrp.querySelectorAll("button")].forEach(x=>x.classList.toggle("on",x.textContent===k)); desc.textContent="move: "+MOVES[k].desc; }; moveGrp.appendChild(b); });
+["bubble","tag"].forEach(k=>{ const b=document.createElement("button"); b.textContent=k; b.onclick=()=>{ bubStyle=k;
+  [...bubGrp.querySelectorAll("button")].forEach(x=>x.classList.toggle("on",x.textContent===k)); squawk("kraa!"); }; bubGrp.appendChild(b); });
+moveGrp.querySelector("button").classList.add("on"); bubGrp.querySelector("button").classList.add("on"); desc.textContent="move: "+MOVES.hop.desc;
+
+input.addEventListener("keydown",e=>{ if(e.key==="Enter"){ ask(input.value); input.value=""; }});
+["on-call philosophy","k8s at home?","why hire you?"].forEach(ch=>{ const b=document.createElement("button"); b.textContent=ch; b.onclick=()=>ask(ch); document.getElementById("chips").appendChild(b); });
+add("you","what's your on-call philosophy?"); setTimeout(()=>add("parrot",replies[0]),350); setTimeout(()=>add("you","do you actually run k8s at home?"),700); setTimeout(()=>add("parrot",replies[1]),1050);
+</script>
+</body>
+</html>

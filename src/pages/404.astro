@@ -1,0 +1,24 @@
+---
+import Base from "../layouts/Base.astro";
+import Nav from "@components/Nav.astro";
+---
+<Base title="404 — not found" description="This page flew the coop. Head back to the site." noindex>
+  <Nav />
+  <main id="content" class="mx-auto flex min-h-[70vh] max-w-[1120px] flex-col justify-center px-4 sm:px-6">
+    <canvas id="slowik-404" class="mb-6 block" style="image-rendering: pixelated;" aria-hidden="true"></canvas>
+    <p class="mono-label text-accent">404</p>
+    <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
+      cluster <span class="text-accent">"portfolio"</span> not found
+    </h1>
+    <p class="mt-3 text-fg-2">the słowik isn't on this branch.</p>
+    <pre class="mono mt-6 text-sm text-muted">$ kubectl get pages -A
+No resources found in this namespace.</pre>
+    <a href="/" class="mono-label mt-8 inline-block py-1 transition-colors hover:text-accent active:text-accent">← back to the site</a>
+  </main>
+
+  <script>
+    import { mountPerched } from "../lib/slowik";
+    const cv = document.getElementById("slowik-404") as HTMLCanvasElement | null;
+    if (cv) mountPerched(cv, 2).setState("sleep");
+  </script>
+</Base>

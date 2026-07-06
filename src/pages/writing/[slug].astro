@@ -1,0 +1,79 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Nav from "@components/Nav.astro";
+import { site } from "@data/site";
+import { postSchema } from "@lib/schema";
+
+export async function getStaticPaths() {
+  const posts = (await getCollection("writing", ({ data }) => !data.draft)).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+  );
+  return posts.map((post, i) => ({
+    params: { slug: post.id },
+    props: { post, newer: posts[i - 1] ?? null, older: posts[i + 1] ?? null },
+  }));
+}
+
+const { post, newer, older } = Astro.props;
+const { Content } = await render(post);
+const ymd = post.data.pubDate.toISOString().slice(0, 10);
+const published = post.data.pubDate.toISOString();
+const modified = (post.data.updatedDate ?? post.data.pubDate).toISOString();
+const pageUrl = new URL(`/writing/${post.id}/`, site.meta.url).href;
+const ogImage = new URL(site.meta.ogImage, site.meta.url).href;
+const schema = postSchema({
+  title: post.data.title,
+  description: post.data.blurb,
+  url: pageUrl,
+  datePublished: published,
+  dateModified: modified,
+  keywords: post.data.tags,
+  image: ogImage,
+});
+---
+<Base
+  title={`${post.data.title} — Krystian Słowik`}
+  description={post.data.blurb}
+  type="article"
+  imageAlt={post.data.title}
+  article={{ publishedTime: published, modifiedTime: modified, tags: post.data.tags }}
+  schema={schema}
+>
+  <Nav />
+  <main id="content" class="mx-auto max-w-[720px] px-4 py-14 sm:px-6 sm:py-20">
+    <p class="mono-label">
+      <a href="/#writing" class="inline-block py-1 transition-colors hover:text-accent active:text-accent">← writing</a>
+    </p>
+    <h1 class="mt-6 font-serif text-3xl italic leading-tight sm:text-4xl">{post.data.title}</h1>
+    <p class="mono-label mt-4">
+      <time datetime={ymd}>{ymd}</time>{post.data.readingTime && ` · ${post.data.readingTime}`}
+    </p>
+    <article class="prose mt-10 space-y-5">
+      <Content />
+    </article>
+    <footer class="mt-14 border-t border-border pt-6">
+      {(newer || older) && (
+        <nav class="mb-6 flex flex-wrap justify-between gap-4" aria-label="More writing">
+          {older ? (
+            <a href={`/writing/${older.id}/`} class="group max-w-[48%]">
+              <span class="mono-label">← older</span>
+              <span class="mt-1 block font-serif text-sm italic text-fg-2 transition-colors group-hover:text-accent group-active:text-accent">{older.data.title}</span>
+            </a>
+          ) : <span></span>}
+          {newer ? (
+            <a href={`/writing/${newer.id}/`} class="group max-w-[48%] text-right">
+              <span class="mono-label">newer →</span>
+              <span class="mt-1 block font-serif text-sm italic text-fg-2 transition-colors group-hover:text-accent group-active:text-accent">{newer.data.title}</span>
+            </a>
+          ) : <span></span>}
+        </nav>
+      )}
+      <p class="mono-label">
+        <a href="/writing/" class="inline-block py-1 transition-colors hover:text-accent active:text-accent">all notes</a>
+        <span class="text-border"> · </span>
+        <a href="/#chat" class="text-accent">ask the słowik about this →</a>
+      </p>
+    </footer>
+  </main>
+</Base>

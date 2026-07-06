@@ -1,0 +1,69 @@
+---
+// Consolidated head metadata — the single owner of title/description/robots and
+// all OpenGraph + Twitter + article tags. Base.astro passes everything through;
+// this keeps one og:image code path instead of four dimensions each adding their
+// own. JSON-LD is rendered by Base (needs the raw object), not here.
+import { site } from "@data/site";
+
+export interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  type?: "website" | "article" | "profile";
+  image?: string;      // absolute URL
+  imageAlt?: string;
+  noindex?: boolean;
+  article?: { publishedTime?: string; modifiedTime?: string; tags?: string[] };
+}
+
+const {
+  title, description, canonical,
+  type = "website",
+  image = new URL(site.meta.ogImage, site.meta.url).href,
+  imageAlt = `${site.identity.name} — ${site.meta.title.split("—").pop()?.trim() ?? "engineer"}`,
+  noindex = false,
+  article,
+} = Astro.props;
+
+const robots = noindex
+  ? "noindex, nofollow"
+  : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
+const THEME = "#161719"; // --color-bg (charcoal); matches the web manifest
+---
+<title>{title}</title>
+<meta name="description" content={description} />
+<meta name="author" content={site.identity.name} />
+<meta name="robots" content={robots} />
+<meta name="theme-color" content={THEME} />
+{!noindex && <link rel="canonical" href={canonical} />}
+
+<!-- OpenGraph -->
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={site.identity.name} />
+<meta property="og:locale" content="en_US" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={image} />
+<meta property="og:image:secure_url" content={image} />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={imageAlt} />
+
+{article && (
+  <>
+    {article.publishedTime && <meta property="article:published_time" content={article.publishedTime} />}
+    <meta property="article:modified_time" content={article.modifiedTime ?? article.publishedTime} />
+    <meta property="article:author" content={site.contact.socials.find((s) => s.label === "LinkedIn")?.href ?? site.meta.url} />
+    <meta property="article:section" content="Engineering" />
+    {(article.tags ?? []).map((t) => <meta property="article:tag" content={t} />)}
+  </>
+)}
+
+<!-- Twitter / X card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={image} />
+<meta name="twitter:image:alt" content={imageAlt} />
