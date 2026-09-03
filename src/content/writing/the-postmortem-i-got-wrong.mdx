@@ -1,15 +1,15 @@
 ---
 title: The postmortem I got wrong
-blurb: I blamed a config when it was a process. Here's the rewrite, and what honest looks like.
+blurb: I blamed a configuration value. The review process was the real problem.
 pubDate: 2026-02-03
 ---
 
-The first version of this postmortem had a clean root cause: a bad config value,
-shipped late on a Friday. Tidy. Blameless on paper. Also wrong.
+My first postmortem blamed a bad configuration value shipped late on Friday.
+The explanation was tidy and wrong.
 
-The config was a symptom. The real failure was a review process that let a
-load-bearing change through without a single question. Fixing the value fixed
-nothing; the same gap produced a different incident a month later.
+The value was a symptom. A load-bearing change passed review without a question.
+We fixed the value, then the same review gap caused another incident a month
+later.
 
-This is the honest rewrite — and what I've changed about how I read my own
-incident reports since.
+I rewrote the postmortem and changed how I review incident reports. I now look
+for the process that allowed the immediate cause through.

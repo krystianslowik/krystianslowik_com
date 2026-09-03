@@ -1,16 +1,33 @@
 ---
 import { site } from "@data/site";
-import SectionHeading from "./SectionHeading.astro";
 import SlowikChat from "./SlowikChat.svelte";
-const { slowik } = site;
+const { slowik, sections } = site;
 ---
-<section id="chat" class="mx-auto max-w-[1120px] px-4 py-14 sm:px-6 sm:py-20">
-  <SectionHeading index="06" title="Ask the słowik" />
-  <p class="max-w-xl text-fg-2" data-reveal>{slowik.intro}</p>
-  <div class="mt-4" data-reveal>
-    {/* client:only — the chat is fully dynamic (physics bird, client-seeded cards),
-        so SSR adds nothing and Svelte 5 hydration of the empty shell was fragile. */}
-    <SlowikChat client:only="svelte" slowik={slowik} />
-    <noscript><p class="mono-label">the słowik needs JavaScript — email me instead: hej@krystianslowik.com</p></noscript>
+
+<section id="chat" class="scroll-mt-20 border-y-2 border-fg bg-elevated py-10 sm:py-28">
+  <div class="mx-auto max-w-[1280px] px-4 sm:px-6">
+    <div class="flex flex-wrap items-end justify-between gap-5" data-reveal>
+      <div>
+        <p class="mono-label text-accent">{sections.chat.index}</p>
+        <h2 class="display mt-3 text-[clamp(2.8rem,8vw,7rem)] uppercase leading-[0.85]">{sections.chat.title}</h2>
+      </div>
+      {sections.chat.meta && <p class="mono-label pb-1">{sections.chat.meta}</p>}
+    </div>
+
+    <div class="relative mt-6 border-2 border-fg bg-bg p-3 sm:mt-12 sm:p-7" data-reveal>
+      <span aria-hidden="true" class="absolute left-2 top-2 h-1.5 w-1.5 rounded-full bg-fg"></span>
+      <span aria-hidden="true" class="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-fg"></span>
+      <span aria-hidden="true" class="absolute bottom-2 left-2 h-1.5 w-1.5 rounded-full bg-fg"></span>
+      <span aria-hidden="true" class="absolute bottom-2 right-2 h-1.5 w-1.5 rounded-full bg-fg"></span>
+
+      <div class="hazard" aria-hidden="true"></div>
+      <div class="grid gap-4 border-b border-border py-5 sm:grid-cols-[150px_1fr]">
+        <p class="mono-label text-accent">channel ks-01</p>
+        <p class="max-w-2xl text-fg-2">{slowik.intro}</p>
+      </div>
+
+      <SlowikChat client:only="svelte" slowik={slowik} />
+      <noscript><p class="mono-label">the słowik needs JavaScript. email me at {site.contact.email}.</p></noscript>
+    </div>
   </div>
 </section>

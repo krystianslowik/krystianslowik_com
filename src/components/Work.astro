@@ -1,36 +1,69 @@
 ---
 import { site } from "@data/site";
-import SectionHeading from "./SectionHeading.astro";
-const { work } = site;
+const { work, sections } = site;
+const selected = work.items.filter((item) => item.featured);
 ---
-<section id="work" class="mx-auto max-w-[1120px] px-4 py-14 sm:px-6 sm:py-20">
-  <SectionHeading index="02" title={work.lead} meta={work.count} />
-  <div class="space-y-14">
-    {work.items.map((item) => (
-      <article class="border-t border-border pt-8" data-reveal data-perch="rule">
-        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <div class="flex items-baseline gap-4">
-            <span class="mono-label text-muted">{item.index}</span>
-            <h3 class="text-xl font-bold tracking-tight">{item.title}</h3>
-          </div>
-          <span class="mono-label whitespace-nowrap text-accent">{item.metric}</span>
-        </div>
-        <p class="mt-4 max-w-2xl text-fg-2">{item.blurb}</p>
-        <ul class="mt-4 flex flex-wrap gap-2">
-          {item.tags.map((t) => (
-            <li class="mono-label rounded-sm border border-border px-2 py-1 text-muted">{t}</li>
-          ))}
-        </ul>
-        <div class="mt-8 max-w-2xl space-y-6 border-l border-border pl-4 sm:pl-6">
-          <div><p class="mono-label">problem</p><p class="mt-1 text-fg-2">{item.problem}</p></div>
-          <div><p class="mono-label">action</p><p class="mt-1 text-fg-2">{item.action}</p></div>
-          <div><p class="mono-label">outcome</p><p class="mt-1 text-fg-2">{item.outcome}</p></div>
+
+<section id="work" class="scroll-mt-20">
+  <header class="mx-auto max-w-[1280px] px-4 py-14 sm:px-6 sm:py-28" data-reveal>
+    <p class="mono-label text-accent">{sections.work.index}</p>
+    <div class="mt-4 flex flex-wrap items-end justify-between gap-5">
+      <h2 class="display text-[clamp(3rem,9vw,8rem)] uppercase leading-[0.85]">{sections.work.title}</h2>
+      {sections.work.meta && <p class="mono-label pb-1">{sections.work.meta}</p>}
+    </div>
+  </header>
+
+  {selected.map((item, i) => {
+    const inverted = i % 2 === 0;
+    return (
+      <article
+        class:list={[
+          "border-t-2 py-10 sm:min-h-[65svh] sm:py-20",
+          inverted ? "border-fg bg-fg text-bg" : "border-fg bg-bg text-fg",
+        ]}
+        data-reveal
+        data-perch="rule"
+      >
+        <div class="mx-auto grid max-w-[1280px] gap-7 px-4 sm:gap-10 sm:px-6 lg:grid-cols-[minmax(130px,.45fr)_minmax(280px,1fr)_minmax(340px,1.15fr)] lg:gap-12">
           <div>
-            <p class="mono-label text-accent">what i'd do differently</p>
-            <p class="mt-1 text-fg-2">{item.whatIdDoDifferently}</p>
+            <p class:list={["mono-label", inverted ? "text-accent-on-ink" : "text-accent"]}>cf.{item.index}</p>
+            <p
+              aria-hidden="true"
+              class="display mt-3 hidden select-none text-[clamp(6rem,16vw,13rem)] leading-[0.75] text-transparent sm:block"
+              style={`-webkit-text-stroke:1.5px ${inverted ? "var(--color-bg)" : "var(--color-border)"}; opacity:.7`}
+            >{item.index}</p>
+          </div>
+
+          <div class="lg:pt-10">
+            <h3 class="display text-2xl leading-tight sm:text-4xl">{item.title}</h3>
+            <p class:list={["mt-4 max-w-xl text-base sm:mt-5 sm:text-lg", inverted ? "text-bg/75" : "text-fg-2"]}>{item.blurb}</p>
+            <ul class="mt-5 flex flex-wrap gap-2 sm:mt-6">
+              {item.tags.map((tag) => (
+                <li class:list={[
+                  "mono-label border px-2 py-1",
+                  inverted ? "border-bg/25 text-bg/60" : "border-border text-muted",
+                ]}>{tag}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="space-y-5 sm:space-y-7 lg:pt-10">
+            {[
+              ["observed", item.problem],
+              ["intervened", item.action],
+              ["resolved", item.outcome],
+            ].map(([label, text]) => (
+              <div class:list={["border-t pt-3", inverted ? "border-bg/20" : "border-border"]}>
+                <p class:list={["mono-label", inverted ? "text-accent-on-ink" : "text-accent"]}>{label}</p>
+                <p class:list={["mt-2", inverted ? "text-bg/78" : "text-fg-2"]}>{text}</p>
+              </div>
+            ))}
+            <p class:list={["border-l-2 pl-4 font-serif text-base italic sm:text-lg", inverted ? "border-accent-on-ink text-bg/75" : "border-accent text-fg-2"]}>
+              {item.whatIdDoDifferently}
+            </p>
           </div>
         </div>
       </article>
-    ))}
-  </div>
+    );
+  })}
 </section>

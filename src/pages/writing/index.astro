@@ -1,13 +1,11 @@
 ---
-import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
-import Nav from "@components/Nav.astro";
+import SheetFrame from "@components/SheetFrame.astro";
 import { site } from "@data/site";
 import { writingIndexSchema } from "@lib/schema";
+import { publishedPosts } from "@lib/writing";
 
-const posts = (await getCollection("writing", ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = await publishedPosts();
 const ym = (d: Date) => d.toISOString().slice(0, 7);
 const schema = writingIndexSchema(
   posts.map((p) => ({
@@ -18,12 +16,14 @@ const schema = writingIndexSchema(
   })),
 );
 ---
-<Base title="Writing — Krystian Słowik" description="Notes on keeping systems boring: postmortems, homelab k8s, and the craft of reliability." schema={schema}>
-  <Nav />
-  <main id="content" class="mx-auto max-w-[840px] px-4 py-14 sm:px-6 sm:py-20">
-    <header class="mb-8 flex items-baseline gap-4 sm:mb-10">
-      <span class="mono-label shrink-0 text-accent">[04]</span>
-      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Writing</h1>
+<Base title={site.writing.title} description={site.writing.description} schema={schema}>
+  <SheetFrame />
+  <main id="content" class="mx-auto max-w-[840px] px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
+    <header class="mb-8 flex items-baseline justify-between gap-4 border-b-2 border-fg pb-2.5 sm:mb-10">
+      <h1 class="display text-2xl uppercase tracking-[0.02em] sm:text-3xl">
+        <span class="mono-label mr-3 font-normal text-accent">archive /</span>{site.writing.lead}
+      </h1>
+      <span class="mono-label whitespace-nowrap">field notes, signed</span>
     </header>
     <ul class="divide-y divide-border">
       {posts.map((p) => (

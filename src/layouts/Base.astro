@@ -53,10 +53,10 @@ const jsonld = schema ? JSON.stringify(schema).replace(/</g, "\\u003c") : null;
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- feeds + sitemap -->
-    <link rel="alternate" type="application/rss+xml" title="Krystian Słowik — writing" href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title={site.writing.feedTitle} href="/rss.xml" />
     <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
 
-    {jsonld && <script type="application/ld+json" set:html={jsonld} />}
+    {jsonld && <script is:inline type="application/ld+json" set:html={jsonld} />}
 
     <ClientRouter />
   </head>
@@ -118,8 +118,8 @@ const jsonld = schema ? JSON.stringify(schema).replace(/</g, "\\u003c") : null;
         if ((e.target as HTMLElement).closest('a[href="#chat"]')) setTimeout(focusChat, 520);
       });
       console.log(
-        "%c the słowik is just gpt + my notes. the emperor's court preferred the clockwork bird — don't.\n press / to ask it something. → krystian",
-        "color:#e0992e;font-family:monospace;font-size:12px",
+        "%c the słowik is gpt + my notes. it repeats what it was taught.\n press / to ask it something. → krystian",
+        "color:#954e00;font-family:monospace;font-size:12px",
       );
     </script>
   </body>

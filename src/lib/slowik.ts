@@ -1,5 +1,5 @@
 // ============================================================================
-// SŁOWIK — 1-bit amber-on-charcoal sprite + physics flight engine.
+// SŁOWIK — 1-bit amber-on-paper sprite + physics flight engine.
 // The site's bird (słowik = nightingale). The sprite ART is the original
 // crested silhouette — crest, hooked beak, round eye — kept by owner
 // preference over the plainer nightingale draft. Ported from the design
@@ -8,7 +8,7 @@
 // pixels at runtime so it stays crisp at any integer scale.
 // ============================================================================
 
-const AMBER: [number, number, number] = [224, 153, 46];
+const AMBER: [number, number, number] = [149, 78, 0]; // --color-accent oklch(0.50 0.125 60) in sRGB (#954e00) — keep in lockstep with global.css
 
 export type Wing = "up" | "mid" | "down" | "tuck" | "flare" | "glide";
 export interface Opts {
@@ -167,8 +167,9 @@ const SPRITE: Record<Which, { size: { w: number; h: number }; draw: (c: CanvasRe
 // The "shader": one amber ink, tone via a 4x4 ordered (Bayer) dither. The draw
 // functions paint in greys (#fff solid, #bbb ~75%, #888 ~50%, #555 ~25%); each
 // grey's luminance picks how many pixels of the 4x4 cell survive, the rest drop
-// to charcoal. Still literally 1-bit-per-pixel — amber@255 or nothing — but with
-// four tones for depth, shade and dive-trail ghosts instead of a single 50%.
+// out (left transparent). Still literally 1-bit-per-pixel — amber@255 or
+// nothing — but with four tones for depth, shade and dive-trail ghosts instead
+// of a single 50%.
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 export function buildBase(which: Which, o: Opts): HTMLCanvasElement {
   const n = SPRITE[which].size;
@@ -182,7 +183,7 @@ export function buildBase(which: Which, o: Opts): HTMLCanvasElement {
     if (src[i + 3] <= 128) continue;
     if (src[i] < 250) { // below near-white: ordered dither by ink tone
       const cover = (src[i] / 255) * 16; // pixels kept per 4x4 cell
-      if (BAYER4[(y & 3) * 4 + (x & 3)] >= cover) continue; // charcoal shows through
+      if (BAYER4[(y & 3) * 4 + (x & 3)] >= cover) continue; // the ground shows through
     }
     img.data[i] = AMBER[0]; img.data[i + 1] = AMBER[1]; img.data[i + 2] = AMBER[2]; img.data[i + 3] = 255;
   }

@@ -6,56 +6,56 @@
 
 export interface NavItem { label: string; href: string; }
 
-export interface StatusField { k?: string; v: string; live?: boolean; }
-export interface StatusReadout {
-  /** labeled telemetry fields; `live` prefixes the value with the ticking clock */
-  fields: StatusField[];
-  availability: string;
-}
-
-export interface NowCard { key: string; label: string; body: string; }
+export interface SectionHead { index: string; title: string; meta?: string; }
 
 export interface WorkItem {
   index: string;
+  /** one of the three case files on the cover; the rest ship only in llms-full.txt */
+  featured?: boolean;
   title: string;
   blurb: string;
   tags: string[];
-  metric: string;
   problem: string;
   action: string;
   outcome: string;
   whatIdDoDifferently: string;
 }
 
-export interface ExperienceRow { hash: string; date: string; role: string; head?: boolean; }
-
-export interface StackColumn { label: string; lines: string[]; }
+export interface ExperienceRow { date: string; role: string; head?: boolean; }
 
 export interface SocialLink { label: string; handle: string; href: string; }
 
 export interface SlowikExchange { you: string; slowik: string; }
 
+export interface TitleCell { k: string; v: string; }
+
+/** The page presents itself as a printed operator's handbook; this is its document apparatus. */
+export interface ManualMeta {
+  docNo: string;
+  revision: string;
+  effective: string;
+  sheet: string;
+  /** phrases running along the cover's bottom tape */
+  marquee: string[];
+}
+
 export interface SiteContent {
   meta: { title: string; description: string; url: string; ogImage: string };
   identity: {
     name: string;
-    monogram: string;
     role: string;       // sub-headline
     manifesto: string;  // tagline
+    /** one factual paragraph, consumed by llms-full.txt */
+    about: string;
   };
   nav: NavItem[];
-  status: StatusReadout;
-  hero: { kicker: string; ctaPrimary: { label: string; href: string }; ctaSecondary: { label: string; href: string } };
-  now: { updated: string; cards: NowCard[] };
-  work: { lead: string; count: string; items: WorkItem[] };
-  experience: { items: ExperienceRow[] };
-  stack: { columns: StackColumn[] };
+  status: { location: string };
+  manual: ManualMeta;
+  sections: { work: SectionHead; chat: SectionHead; record: SectionHead; contact: SectionHead };
+  work: { items: WorkItem[] };
+  experience: { lead: string; meta: string; items: ExperienceRow[] };
+  writing: { lead: string; title: string; feedTitle: string; description: string };
   slowik: {
-    label: string;
-    status: string;
-    /** hero teaser: short headline + blurb over the clickable starter pills */
-    heroTitle: string;
-    heroBlurb: string;
     intro: string;
     seeded: SlowikExchange;
     placeholder: string;
@@ -64,186 +64,172 @@ export interface SiteContent {
     footnote: string;
   };
   contact: { blurb: string; email: string; socials: SocialLink[] };
-  colophon: { notes: string[]; copyright: string; version: string; commit: string };
+  colophon: { titleBlock: TitleCell[]; copyright: string; version: string; commit: string };
 }
 
 export const site: SiteContent = {
   meta: {
-    title: "Krystian Słowik — support & integrations engineer",
+    title: "Krystian Słowik | support & integrations engineer",
     description:
-      "Enterprise support & integrations engineer at n8n. Kubernetes, AI agent pipelines, the auth layer. Plus a nightingale you can ask.",
+      "Enterprise support & integrations engineer at n8n. I debug Kubernetes deployments and AI pipelines at source. Ask the słowik.",
     url: "https://krystianslowik.com",
     ogImage: "/og.png",
   },
 
   identity: {
     name: "Krystian Słowik",
-    monogram: "ks",
-    role: "Support and integrations engineer at n8n, enterprise tier. I get pulled into customer environments where Kubernetes, integrations, and AI pipelines are failing in ways nobody documented, and I build what makes them work: the fix, the custom node, the reusable play.",
-    manifesto:
-      "Root cause over vibes, but the deliverable is a working system in the customer's hands, not a diagnosis. I read the source when the docs lie.",
+    role: "I handle enterprise support and integrations at n8n. I fix failures the docs don't cover and write down what worked.",
+    manifesto: "Root cause over vibes. I read the source when the docs lie.",
+    about:
+      "Krystian fixes systems nobody documented, then writes the play so they stay fixed. He builds internal tooling, MCP servers and automation; maintains a three-node bare-metal Kubernetes homelab; studies cybersecurity part-time; and speaks Polish, English and German.",
   },
 
   nav: [
     { label: "work", href: "/#work" },
-    { label: "now", href: "/#now" },
-    { label: "writing", href: "/#writing" },
     { label: "chat", href: "/#chat" },
+    { label: "writing", href: "/#writing" },
     { label: "contact", href: "/#contact" },
   ],
 
-  status: {
-    fields: [
-      { k: "loc", v: "Münster · DE" },
-      { k: "time", v: "CET", live: true },
-      { k: "focus", v: "enterprise k8s / AI agents" },
+  status: { location: "Münster · DE" },
+
+  manual: {
+    docNo: "doc. ks-2026",
+    revision: "rev. d",
+    effective: "effective 2026-07",
+    sheet: "sheet 1 of 1",
+    marquee: [
+      "support & integrations",
+      "enterprise kubernetes",
+      "debugging AI pipelines at source",
+      "n8n",
+      "homelab k8s",
+      "root cause over vibes",
+      "Münster · DE",
+      "the słowik sings only what it was taught",
     ],
-    // availability intentionally blank during review — "open to select work" reads as a
-    // flight-risk signal to the same leadership deciding the promotion. Restore when ready.
-    availability: "",
   },
 
-  hero: {
-    kicker: "[00] index",
-    ctaPrimary: { label: "See selected work", href: "#work" },
-    ctaSecondary: { label: "or ask the słowik", href: "#chat" },
-  },
-
-  now: {
-    updated: "2026-07",
-    cards: [
-      { key: "role", label: "role", body: "Senior product support engineer (enterprise) at n8n. Self-hosted and cloud deployments across Kubernetes, distributed state, security boundaries, and AI agent pipelines that break in ways nobody documented. I build the fix and the tooling so it does not break the same way twice." },
-      { key: "building", label: "building", body: "Internal tooling at work: MCP servers, Slack automation, CI/CD. Shipped n8n-nodes-plainapi, a community node for the Plain support platform, 34 operations across 8 resources. At home: a scanning console for the cluster, and the słowik at the bottom of this page." },
-      { key: "learning", label: "learning", body: "Cybersecurity, part-time studies. And writing down anything I catch myself explaining twice." },
-    ],
+  sections: {
+    work: { index: "§01 / evidence", title: "Case files", meta: "three selected cases" },
+    chat: { index: "§02 / live unit", title: "Remote diagnostics", meta: "channel open · best effort" },
+    record: { index: "§03 / record", title: "Record" },
+    contact: { index: "§04 / direct line", title: "Contact" },
   },
 
   work: {
-    lead: "Selected work",
-    count: "the serious five",
     items: [
       {
         index: "01",
-        title: "End-to-end delivery",
+        featured: true,
+        title: "Imaging pipeline, end to end",
         blurb:
-          "End-to-end delivery of an event-driven platform for gigabyte-scale imaging: content-addressed ingest, a native tiler, a domain-specific detection model, and the operational system on top.",
+          "I built the imaging pipeline from ingest through detection and delivery.",
         tags: ["Python + C#", "RabbitMQ", "computer vision", "hybrid on-prem"],
-        metric: "~20 min → 1.5 s / file",
         problem:
-          "An instrument pipeline took roughly 20 minutes per file before anyone could look at the contents, and results lived outside the system people actually worked in.",
+          "~20 minutes per file before anyone saw the contents; results lived outside the system people worked in.",
         action:
-          "Built the chain end to end: a versioned, content-addressed ingest buffer, a native tiler integration that cut per-file processing to about 1.5 seconds, a detection service consuming tiles over RabbitMQ with a custom-trained model, results flowing into the operational app for lifecycle, billing and reporting, across on-prem GPU and cloud.",
+          "I built content-addressed ingest and a native tiler that ran in about 1.5 seconds per file. A RabbitMQ-fed service ran the custom model and sent results to the operational app across on-prem GPU and cloud.",
         outcome:
-          "A 20-minute batch step became near-real-time, landing in the same system where the work gets managed, invoiced and reported.",
-        whatIdDoDifferently:
-          "CI/CD and backups first, not last.",
+          "Files became available almost immediately. The results stayed in the system used for billing and reporting.",
+        whatIdDoDifferently: "CI/CD and backups first.",
       },
       {
         index: "02",
+        featured: true,
         title: "An n8n node, because the platform was missing one",
         blurb:
-          "Plain is a support platform built for technical teams. n8n had no node for it, so I built and shipped one to the community: the full GraphQL surface wrapped in n8n's resource and operation model, with a typed credential and filter support.",
+          "Plain had no n8n node. So I shipped one to the community.",
         tags: ["n8n", "custom node", "GraphQL", "community package"],
-        metric: "34 operations, 8 resources, one credential",
         problem:
-          "A high-value integration did not exist. Driving Plain from n8n meant hand-writing GraphQL in HTTP Request nodes and re-deriving auth, filters and pagination in every workflow.",
+          "Every workflow needed its own hand-written GraphQL requests, including authentication and filters.",
         action:
-          "Built n8n-nodes-plainapi end to end: 34 operations across threads, customers, companies, emails, notes, labels, users and CSAT, full filter and sort support, a typed credential, strict mode, zero runtime deps. Published on npm, installable from Settings, Community Nodes.",
+          "I wrapped Plain's GraphQL API in n8n-nodes-plainapi. It has 34 operations, one typed credential, filtering and sorting, and no runtime dependencies. It ships through npm and Community Nodes.",
         outcome:
-          "A bespoke need became a reusable node. Per-workflow GraphQL glue collapsed to one install and a credential.",
-        whatIdDoDifferently:
-          "Ship the node the first time I hit the gap, not the third.",
+          "One install and a credential replaced all of it.",
+        whatIdDoDifferently: "Ship it the first time I hit the gap.",
       },
       {
         index: "03",
         title: "Reusable deployment plays, not one-off fixes",
         blurb:
-          "Sole author of an enterprise Kubernetes deployment playbook: execution-mode decisions, Helm chart tradeoffs, sizing, security hardening, and a troubleshooting index tied to real incidents. Every engagement codified into a play so the next deployment starts sharper.",
+          "Sole author of an enterprise Kubernetes deployment playbook.",
         tags: ["Helm", "methodology", "docs as product"],
-        metric: "every engagement → a play",
         problem:
-          "Every enterprise deployment re-derived the same decisions from scratch, and then hit the same incidents, which got re-diagnosed from scratch too.",
+          "Every deployment re-derived the same decisions, then re-broke in the same places.",
         action:
-          "Codified the whole path into one playbook, verified against live deployments, with every troubleshooting entry indexed to incidents that actually happened rather than ones that might.",
+          "I documented execution modes, Helm tradeoffs, sizing and hardening. Each troubleshooting entry came from an incident that happened.",
         outcome:
-          "Deployments start from the playbook instead of a blank page, and new incidents map to a known chapter more often than not.",
-        whatIdDoDifferently:
-          "Started it months later than I should have. The second time you explain something, write the play.",
+          "Deployments start from the play, not a blank page.",
+        whatIdDoDifferently: "The second time you explain something, write it down.",
       },
       {
         index: "04",
-        title: "Enterprise deployments, debugged at source",
+        featured: true,
+        title: "Finding the fault in enterprise deployments",
         blurb:
-          "Enterprise deployments across EKS and AKS, where incidents arrive as symptoms with three plausible causes. TLS handshakes dying somewhere between cert validation, a proxy, a WAF and the network layer; licensing state that expires only in multi-instance mode, months apart.",
+          "EKS and AKS incidents rarely point at the layer that failed.",
         tags: ["Kubernetes", "TLS/mTLS", "Grafana", "source-level RCA"],
-        metric: "root cause > vibes",
         problem:
-          "At enterprise scale the easy explanation is usually wrong, and it's often already been confidently stated by someone else. Multi-month recurrences span accounts with materially different architectures.",
+          "The first explanation is usually wrong. Someone has often stated it with confidence already.",
         action:
-          "Run the elimination chain, MTU, SNI, proxy env, DNS, egress paths, and read the product's source (licensing, leader election) instead of trusting the docs. Walk back the pet theory when the evidence kills it, including my own. Send the honest 'no fix, no date' update instead of overpromising.",
+          "I check MTU, SNI, proxy settings, DNS and egress, then read the product source if the docs stop short. If there is no fix or date, I say that.",
         outcome:
-          "Fixes land where the bug actually lives, and customers get evidence their own infra teams can act on.",
-        whatIdDoDifferently:
-          "I used to argue against the theory; now I just bring the packet capture.",
+          "The customer gets a fix at the failing layer and evidence their infrastructure team can use.",
+        whatIdDoDifferently: "Bring the packet capture earlier.",
       },
       {
         index: "05",
         title: "AI pipelines, debugged where they broke",
         blurb:
-          "Enterprise agent systems running several model providers at once: tool calls that don't match the schema, context windows that truncate silently mid-chain, retry logic that cascades on provider 429s.",
+          "Multi-provider agent pipelines failing somewhere in the middle.",
         tags: ["LLM pipelines", "MCP", "multi-provider", "production"],
-        metric: "sometimes it's the model",
         problem:
-          "Agent failures look like model quality problems. Usually they aren't, but proving which layer actually broke takes reading source, not docs.",
+          "Failures look like model quality problems. Usually aren't.",
         action:
-          "Trace at the failing layer: the tool-call JSON the model generated versus the schema the node expects, contexts that truncate so the agent reasons on incomplete state, provider rate-limit retries that fire wrong and cascade. Verify vendor claims at source level, including correcting confident AI-generated answers before they become commitments.",
+          "Trace at the failing layer: schema-mismatched tool calls, silent context truncation, retry cascades on provider 429s. Vendor claims verified at source.",
         outcome:
-          "Honest diagnoses, model, prompt, or the infrastructure in between, and internal tooling so the next engineer doesn't re-derive the trace.",
-        whatIdDoDifferently:
-          "Trust the reproduction, not the reply. Including the AI's.",
+          "I identify whether the failure is in the model, the prompt or the infrastructure between them.",
+        whatIdDoDifferently: "Trust the reproduction, not the reply.",
       },
     ],
   },
 
   experience: {
+    lead: "Revision history",
+    meta: "newest revision first",
     items: [
-      { hash: "e8d3a1f", date: "2026-01", role: "Senior product support engineer, IC3 enterprise — n8n (remote)", head: true },
-      { hash: "7b1e004", date: "2025-01", role: "Senior product support engineer — Cognigy · AI/LLM/NLU SME on k8s (→ 2025-12)" },
-      { hash: "a3f9c2e", date: "2024-06", role: "Software engineer, fullstack cloud — jaraco GmbH (part-time, → 2026)" },
-      { hash: "c40d18a", date: "2022-08", role: "2nd level technical support — Trusted Shops (→ 2025-01, left with a reference letter and an award)" },
-      { hash: "b95fc27", date: "2022-07", role: "Game operator, plemiona.pl — InnoGames (co-op) · childhood game, other side of the banhammer" },
-      { hash: "1f9aa75", date: "2015-19", role: "ZST Kolbuszowa — CS technikum, CISCO IT Essentials, olympiad laureate" },
+      { date: "2026-01", role: "Senior product support engineer, IC3 enterprise at n8n (remote)", head: true },
+      { date: "2025-01", role: "Senior product support engineer at Cognigy · AI/LLM/NLU SME on k8s (to 2025-12)" },
+      { date: "2024-06", role: "Fullstack cloud engineer at jaraco GmbH (part-time, to 2026)" },
+      { date: "2022-08", role: "2nd level technical support at Trusted Shops (to 2025-01)" },
+      { date: "2022-07", role: "Game operator for plemiona.pl at InnoGames (co-op)" },
+      { date: "2015-19", role: "Computer science at ZST Kolbuszowa · CISCO IT Essentials · olympiad laureate" },
     ],
   },
 
-  stack: {
-    columns: [
-      { label: "operate", lines: ["Kubernetes — EKS, AKS, and kubeadm on bare metal", "Prometheus · Grafana · Loki · Jaeger", "Vault · Keycloak · mTLS · SSO (OIDC/SAML)", "Terraform · Helm · ArgoCD · GitHub Actions"] },
-      { label: "build", lines: ["TypeScript · Python · Kotlin · Go — and PHP where it pays", "NestJS · FastAPI · Spring Boot · React/Next", "MCP servers, agents, n8n workflows — do it once, never again", "Postgres · Redis · RabbitMQ · Kafka", "YOLO · CVAT — models into systems, not notebooks"] },
-      { label: "homelab", lines: ["3 bare-metal Ryzen nodes, kubeadm on Ubuntu, GitOps", "last rolling OS upgrade: three nodes, zero bytes lost", "where the bad ideas go first"] },
-    ],
+  writing: {
+    lead: "Dispatches",
+    title: "Writing | Krystian Słowik",
+    feedTitle: "Krystian Słowik | writing",
+    description: "Notes on incidents, homelab Kubernetes and keeping systems quiet.",
   },
 
   slowik: {
-    label: "słowik",
-    status: "online",
-    heroTitle: "Ask the słowik anything.",
-    heroBlurb:
-      "Trained on my notes, talks and postmortems — it says “don't know” when it wasn't taught the answer.",
     intro:
-      "słowik (SWOH-veek) — Polish for nightingale, and my surname. This one is the bird: a wind-up copy trained on my notes, talks and postmortems. It sings them back in my register — and says “don't know” when it wasn't taught the answer. The living Słowik is the one you email; the bird runs on my own backend, and your browser never calls a vendor.",
+      "Słowik means nightingale in Polish and is my surname. This bird learned from my notes. It runs on my backend, so your browser never calls a model vendor.",
     seeded: {
       you: "what's your on-call philosophy?",
       slowik:
-        "A pager should mean a human has to decide something right now. Everything else is a ticket — or an automation I still owe you. Ask me something I don't know and I'll say so.",
+        "A pager means a human needs to decide something now. Everything else belongs in a ticket or an automation. Ask about something outside my notes and I'll say I don't know.",
     },
     placeholder: "ask about k8s, the homelab, or me…",
-    chips: ["why hire you?", "dropped into a fire?", "read the source?", "shipped an integration?", "one-off, or a play?"],
-    footnote: "a wind-up bird repeats its songs, it doesn't think — verify anything load-bearing with me.",
+    chips: ["what do you do at n8n?", "tell me about a bad incident", "when do you read source?", "what have you shipped?", "how do you stop repeat incidents?"],
+    footnote: "this bird repeats its notes. verify anything load-bearing with me.",
   },
 
   contact: {
-    blurb: "Best path is email. I read everything and reply to most of it.",
+    blurb: "Best path is email. I read everything, answer most.",
     email: "hej@krystianslowik.com",
     socials: [
       { label: "GitHub", handle: "@krystianslowik", href: "https://github.com/krystianslowik" },
@@ -252,10 +238,11 @@ export const site: SiteContent = {
   },
 
   colophon: {
-    notes: [
-      "Astro, static-first. The only hydrated island is the słowik — a 1-bit sprite on a fixed-tick physics engine, ~10 KB gzipped. Chat runs on my own infrastructure, no third-party model vendor in the request path.",
-      "No trackers, no cookies, no consent banner. JS only where it earns its keep: the reveals and the bird. OKLCH palette, one amber, hairline depth — contrast measured, not assumed: body text AAA, labels AA.",
-      "Keyboard-navigable end to end, visible focus rings; prefers-reduced-motion means the bird just perches. Helvetica Neue + JetBrains Mono, Newsreader for long-form. The słowik answers in Polish, English or German — like the man it's named after.",
+    titleBlock: [
+      { k: "drawn by", v: "k. słowik · münster, de" },
+      { k: "set in", v: "newsreader · helvetica neue · jetbrains mono" },
+      { k: "process", v: "astro static build · zero trackers, zero cookies" },
+      { k: "ink", v: "one burnt amber on paper" },
     ],
     copyright: "© 2026 Krystian Słowik · Münster",
     version: "v2026.7",

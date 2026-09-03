@@ -142,7 +142,7 @@ export class SlowikCompanion {
   private spriteCache = new Map<string, HTMLCanvasElement>(); // rasterized poses (quantized pitch)
   private raf = 0; private last = 0;
   private mouse: { x: number; y: number } | null = null;
-  private navEl: HTMLElement | null = document.querySelector("header");
+  private tiles: HTMLElement[] = Array.from(document.querySelectorAll<HTMLElement>("[data-frame-tile]")); // SheetFrame's frosted tiles — the only things that occlude the bird
   private bubTimer = 0;
   private timers = new Set<ReturnType<typeof setTimeout>>();
   private talkTimer: ReturnType<typeof setTimeout> | null = null;
@@ -152,9 +152,9 @@ export class SlowikCompanion {
   constructor() {
     this.root = document.createElement("div");
     this.root.setAttribute("aria-hidden", "true");
-    // z 35: BELOW the sticky nav (z-40) — owner's call: the bird passes UNDER
-    // the frosted bar (behind the glass), never over the menu. The hero-name
-    // perch bias keeps it from roosting half-hidden up there.
+    // z 35: BELOW the fixed SheetFrame marginalia (z-40) — owner's call: the bird
+    // passes UNDER the frosted tiles (behind the glass), never over the menu. The
+    // hero-name perch bias keeps it from roosting half-hidden up there.
     this.root.style.cssText = "position:fixed;inset:0;z-index:35;pointer-events:none;";
     this.perchedCv = document.createElement("canvas");
     this.flightCv = document.createElement("canvas");
@@ -171,8 +171,10 @@ export class SlowikCompanion {
     this.hit.style.cssText = `position:fixed;left:0;top:0;width:${FULL.w * SCALE}px;height:${FULL.h * SCALE}px;pointer-events:auto;cursor:default;`;
     this.bub = document.createElement("div");
     this.bub.style.cssText =
-      "position:fixed;left:0;top:0;opacity:0;transform:translateY(4px);transition:opacity .25s ease,transform .25s ease;" +
-      "font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.08em;color:var(--color-accent);white-space:nowrap;pointer-events:none;";
+      "position:fixed;left:0;top:0;opacity:0;transform:translateY(4px);transition:opacity .2s var(--ease-out),transform .2s var(--ease-out);" +
+      "font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;line-height:1.2;letter-spacing:.08em;color:var(--color-accent);white-space:nowrap;pointer-events:none;" +
+      // a paper pill: the chirp stays legible over the ink panels and wherever scroll-follow takes it
+      "padding:2px 6px;border:1px solid var(--color-border);border-radius:2px;background:color-mix(in oklab,var(--color-bg) 92%,transparent);";
     this.root.append(this.perchedCv, this.flightCv, this.hit, this.bub);
     document.body.appendChild(this.root);
 
@@ -233,8 +235,20 @@ export class SlowikCompanion {
     this.bub.textContent = text ?? SONGS[Math.floor(Math.random() * SONGS.length)];
     this.bubTimer = 900;
     this.placeBubble();
-    this.bub.style.opacity = "1"; this.bub.style.transform = "translateY(0)";
-    this.later(() => { this.bub.style.opacity = "0"; this.bub.style.transform = "translateY(4px)"; }, 900);
+    // reduced motion: the pill FADES, it does not rise (the global rule no longer
+    // zeroes transitions, so the movement has to be dropped here)
+    if (this.reduce) {
+      this.bub.style.transition = "opacity .2s var(--ease-out)";
+      this.bub.style.transform = "none";
+    } else {
+      this.bub.style.transition = "opacity .2s var(--ease-out),transform .2s var(--ease-out)";
+      this.bub.style.transform = "translateY(0)";
+    }
+    this.bub.style.opacity = "1";
+    this.later(() => {
+      this.bub.style.opacity = "0";
+      if (!this.reduce) this.bub.style.transform = "translateY(4px)"; // rest low again so the next rise plays
+    }, 900);
   }
 
   startle() {
@@ -753,7 +767,7 @@ export class SlowikCompanion {
     const x = (this.facing > 0 ? this.rX + 22 : this.rX - 58) + (this.recoilX || 0);
     const y = this.rY - FEET * SCALE - 10 - (this.flying ? this.rArc : 0) - this.hop;
     this.bub.style.left = `${x}px`;
-    this.bub.style.top = `${y - 16}px`;
+    this.bub.style.top = `${y - 22}px`;
   }
 
   /** memoised rasterization: poses are a small discrete space (pitch quantized to
@@ -853,13 +867,27 @@ export class SlowikCompanion {
         `translate(${rX - this.flightCv.width / 2}px, ${rY - rArc - this.flightCv.height * 0.72}px) scaleX(${-this.facing})`;
     }
     // hit box tracks the visible sprite (flight sprite is wider/taller than the
-    // perched one), clipped to BELOW the sticky nav — the sprite hides behind
-    // the bar (z 35 vs 40), so the occluded part must not be tappable either.
+    // perched one), clipped against SheetFrame's frosted tiles — the sprite
+    // passes behind them (z 35 vs 40), so the occluded part must never be
+    // tappable: the header tiles are pointer-events-auto, so a tap there has to
+    // reach the tile, and the bottom tiles simply occlude. The rest of the frame
+    // is transparent and pointer-events-none, so a bird there stays tappable.
     const hitW = this.flying ? this.flightCv.width : FULL.w * SCALE;
     let hitTop = this.flying ? rY - rArc - this.flightCv.height * 0.72 : rY - feetPx - this.hop;
     let hitH = this.flying ? this.flightCv.height : FULL.h * SCALE;
-    const navBot = this.navEl?.getBoundingClientRect().bottom ?? 0;
-    if (hitTop < navBot) { hitH = Math.max(0, hitH - (navBot - hitTop)); hitTop = navBot; }
+    const hitL = rX - hitW / 2, hitR = hitL + hitW;
+    for (const tile of this.tiles) {
+      const r = tile.getBoundingClientRect();
+      if (r.width === 0 || r.right <= hitL || r.left >= hitR || r.bottom <= hitTop || r.top >= hitTop + hitH) continue;
+      if (r.top <= hitTop) {
+        // tile covers the top: keep only what shows below it
+        const cut = Math.min(hitTop + hitH, r.bottom) - hitTop;
+        hitH = Math.max(0, hitH - cut); hitTop += cut;
+      } else {
+        // tile enters from below: keep what shows above it
+        hitH = Math.max(0, Math.min(hitH, r.top - hitTop));
+      }
+    }
     this.hit.style.width = `${hitW}px`;
     this.hit.style.height = `${hitH}px`;
     this.hit.style.pointerEvents = hitH > 0 ? "auto" : "none";

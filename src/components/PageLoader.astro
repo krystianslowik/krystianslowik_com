@@ -31,7 +31,7 @@
       if (done) return;
       done = true;
       clearInterval(dots);
-      el.style.transition = "opacity .3s ease";
+      el.style.transition = "opacity .3s var(--ease-out)";
       el.style.opacity = "0";
       el.style.pointerEvents = "none";
       setTimeout(() => { stop(); el.remove(); }, 320);

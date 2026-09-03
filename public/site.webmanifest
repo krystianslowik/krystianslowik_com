@@ -1,12 +1,12 @@
 {
-  "name": "Krystian Słowik — support & integrations engineer",
+  "name": "Krystian Słowik | support & integrations engineer",
   "short_name": "Słowik",
-  "description": "Enterprise support & integrations engineer at n8n. Kubernetes, AI agent pipelines, the auth layer. Plus a nightingale you can ask.",
+  "description": "Enterprise support & integrations engineer at n8n. I debug Kubernetes deployments and AI pipelines at source. Ask the słowik.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "theme_color": "#161719",
-  "background_color": "#0e0e0e",
+  "theme_color": "#f2f0ea",
+  "background_color": "#f2f0ea",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
