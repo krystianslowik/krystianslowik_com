@@ -4,8 +4,6 @@
   import { getSlowik, type SlowikCompanion } from "../lib/slowikCompanion";
 
   type SlowikData = {
-    label: string;
-    status: string;
     seeded: { you: string; slowik: string };
     placeholder: string;
     chips: string[];
@@ -22,12 +20,14 @@
   let manual = $state(false); // user owns the camera: kills the 0.6s transition while true
 
   let stageEl: HTMLDivElement;
+  let railEl: HTMLDivElement;
   let bird: SlowikCompanion | null = null;
 
   // wire geometry — the conversation is a horizontal timeline the companion perches on
-  const RAIL_Y = 200;
+  let railY = 200;
   const START = 70;
   let stageW = 1120;
+  let compact = $state(false);
   let cardW = $state(300);
   let gap = $state(230);
   let focusI = 0; // index of the card the bird is anchored to
@@ -37,6 +37,16 @@
   const clampCam = (x: number) => Math.min(0, Math.max(Math.min(0, stageW - contentW()), x));
   const anchorOf = (i: number) =>
     Math.max(60, Math.min(stageW - 60, worldX(i) + camX + cardW + 30));
+
+  // the same breakpoint the rail/card CSS keys on — never derive layout from stage width
+  const compactMq = matchMedia("(max-width: 639px)");
+  function measureStage() {
+    stageW = stageEl.clientWidth;
+    compact = compactMq.matches;
+    railY = railEl.offsetTop || (compact ? 130 : 200); // the drawn rail is the single source of truth
+    cardW = Math.min(300, stageW - 90);
+    gap = Math.round(cardW * 0.77);
+  }
 
   function focus(i: number) {
     focusI = i;
@@ -173,8 +183,8 @@
   function errorText(e: unknown): string {
     if (e instanceof ChatApiError && e.status === 429 && e.apiMessage) return e.apiMessage;
     if (e instanceof DOMException && e.name === "TimeoutError")
-      return "the wire went quiet — that took too long. ask again in a moment.";
-    return "the wire went quiet — my backend hiccuped. give it a second and ask again.";
+      return "the wire went quiet. that took too long. ask again in a moment.";
+    return "the wire went quiet. my backend hiccuped. give it a second and ask again.";
   }
 
   async function ask(text: string) {
@@ -218,9 +228,7 @@
   }
 
   onMount(() => {
-    stageW = stageEl.clientWidth;
-    cardW = Math.min(300, stageW - 90);
-    gap = Math.round(cardW * 0.77);
+    measureStage();
 
     bird = getSlowik();
     bird.registerWire(stageEl, () => {
@@ -229,7 +237,7 @@
       if (r.width === 0) return null;
       // live anchor: reads camX each call, so the bird rides the wire while
       // the user scrolls the conversation left-right
-      return { x: r.left + anchorOf(focusI), y: r.top + RAIL_Y };
+      return { x: r.left + anchorOf(focusI), y: r.top + railY };
     });
 
     stageEl.addEventListener("wheel", onWheel, { passive: false });
@@ -245,9 +253,7 @@
     window.addEventListener("slowik:ask", onAsk);
 
     const onResize = () => {
-      stageW = stageEl.clientWidth;
-      cardW = Math.min(300, stageW - 90);
-      gap = Math.round(cardW * 0.77);
+      measureStage();
       const i = msgs.length - 1;
       if (i >= 0) camX = clampCam(stageW * 0.5 - cardW * 0.5 - worldX(i));
     };
@@ -275,8 +281,10 @@
     onpointerup={onPointerUp}
     onpointercancel={onPointerCancel}
     onclickcapture={onClickCapture}
+    role="region"
+    aria-label="Conversation timeline"
   >
-    <div class="wire-rail" aria-hidden="true"></div>
+    <div class="wire-rail" bind:this={railEl} aria-hidden="true"></div>
     <div class="wire-world" class:manual style="transform: translateX({camX}px)">
       {#each msgs as m, i (i)}
         <div
@@ -295,34 +303,34 @@
     </div>
   </div>
 
-  <form onsubmit={onSubmit} class="mx-auto mt-5 max-w-2xl rounded-md border border-border px-4 py-3 transition-colors focus-within:border-accent/60">
+  <form onsubmit={onSubmit} class="mx-auto mt-3 max-w-2xl border border-fg/70 bg-bg px-3 py-2 transition-colors focus-within:border-accent sm:mt-5 sm:px-4 sm:py-3">
     <div class="flex items-center gap-3">
       <span class="font-mono text-accent" aria-hidden="true">›</span>
       <input
         id="slowik-input"
         bind:value={input}
-        placeholder={busy ? "rummaging…" : copy.placeholder}
+        placeholder={busy ? "rummaging…" : compact ? "ask the słowik" : copy.placeholder}
         aria-label="ask the słowik"
-        class="min-w-0 flex-1 bg-transparent font-mono text-base outline-none placeholder:text-muted sm:text-sm"
+        class="min-w-0 flex-1 bg-transparent font-mono text-base text-fg outline-none placeholder:text-muted sm:text-sm"
       />
       <button
         type="submit"
         disabled={busy || !input.trim()}
-        class="rounded-sm bg-accent px-3.5 py-2 text-bg transition hover:bg-accent-hi active:bg-accent disabled:opacity-40 disabled:hover:bg-accent"
+        class="min-h-11 min-w-11 bg-accent px-3 py-2 text-bg transition-colors hover:bg-accent-hi active:bg-accent disabled:opacity-40 disabled:hover:bg-accent"
         aria-label="send">↵</button>
     </div>
   </form>
-  <div class="mt-3 flex flex-wrap justify-center gap-2">
+  <div class="mt-3 hidden flex-wrap justify-center gap-2 sm:flex">
     {#each copy.chips as chip}
       <button
         type="button"
         onclick={() => ask(chip)}
         disabled={busy}
-        class="mono-label rounded-sm border border-border px-3 py-2 text-muted transition-colors hover:border-accent/50 hover:bg-accent/5 hover:text-accent active:bg-accent/10 disabled:opacity-40"
+        class="mono-label border border-border bg-elevated px-3 py-2 text-fg-2 transition-colors hover:border-accent hover:bg-bg hover:text-accent active:bg-accent/10 disabled:opacity-40"
       >{chip}</button>
     {/each}
   </div>
-  <p class="mono-label mt-4 text-center leading-relaxed">
+  <p class="mono-label mt-3 text-center leading-relaxed sm:mt-4">
     {copy.footnote}
   </p>
   <p class="sr-only" role="status" aria-live="polite">{announce}</p>
@@ -342,23 +350,28 @@
   }
   .wire-rail {
     position: absolute; left: 0; right: 0; top: 200px; height: 1px;
-    background: var(--color-border);
+    background-image: repeating-linear-gradient(90deg,
+      var(--color-fg-2) 0 7px, transparent 7px 13px);
+    opacity: 0.55;
   }
   .wire-world {
     position: absolute; inset: 0;
-    transition: transform 0.6s cubic-bezier(0.33, 1, 0.5, 1);
+    transition: transform 0.6s var(--ease-out);
     /* own compositor layer: drags/glides only composite, never repaint the cards */
     will-change: transform;
   }
   .wire-world.manual { transition: none; }
   @media (prefers-reduced-motion: reduce) {
     .wire-world { transition: none; }
+    .wire-card .box { transition-property: border-color, opacity; }
   }
 
   .wire-card { position: absolute; }
   .wire-card .stem {
     position: absolute; left: 18px; width: 1px;
-    background: var(--color-border);
+    background-image: repeating-linear-gradient(180deg,
+      var(--color-fg-2) 0 4px, transparent 4px 8px);
+    opacity: 0.55;
   }
   .wire-card.you { top: 212px; }
   .wire-card.you .stem { top: -12px; height: 12px; }
@@ -368,18 +381,16 @@
   .wire-card .box {
     position: relative; display: block; width: 100%; text-align: left;
     border: 1px solid var(--color-border);
-    background: var(--color-elevated);
-    border-radius: 6px; padding: 11px 14px;
+    background: var(--color-bg);
+    box-shadow: 2px 2px 0 color-mix(in oklab, var(--color-fg) 10%, transparent);
+    border-radius: 2px; padding: 11px 14px;
     font-size: 0.875rem; line-height: 1.55; color: var(--color-fg);
     overflow: hidden; max-height: 118px;
-    transition:
-      max-height 0.35s cubic-bezier(0.33, 1, 0.5, 1),
-      border-color 0.2s,
-      opacity 0.3s;
+    transition: max-height 0.35s var(--ease-out), border-color 140ms var(--ease-out), opacity 0.3s var(--ease-out);
   }
   .wire-card .box::after {
     content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30px;
-    background: linear-gradient(transparent, var(--color-elevated));
+    background: linear-gradient(transparent, var(--color-bg));
     pointer-events: none;
   }
   .wire-card .box:hover, .wire-card .box:focus-visible, .wire-card.live .box { max-height: 330px; overflow-y: auto; }
@@ -394,4 +405,13 @@
   .wire-card.dim .box { opacity: 0.55; }
   .wire-card .who { display: block; margin-bottom: 4px; }
   .wire-card .pending { color: var(--color-muted); font-style: italic; }
+
+  @media (max-width: 639px) {
+    .wire-stage { margin-top: 1rem; height: 260px; }
+    .wire-rail { top: 130px; }
+    .wire-card.you { top: 142px; }
+    .wire-card.swk { bottom: 142px; }
+    .wire-card .box { max-height: 92px; padding: 9px 11px; font-size: 0.8125rem; }
+    .wire-card .box:hover, .wire-card .box:focus-visible, .wire-card.live .box { max-height: 118px; }
+  }
 </style>

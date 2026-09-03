@@ -1,28 +1,22 @@
 ---
-title: k8s at home, and why it's not a toy
-blurb: The homelab is where I'm allowed to break things on purpose. That's the entire point.
+title: k8s at home, and why I run it
+blurb: I use a three-node homelab to meet failures before they reach a customer.
 pubDate: 2025-12-18
 ---
 
-Three bare-metal Ryzen mini-PCs in a cupboard in Münster. Kubernetes the honest
-way — kubeadm on Ubuntu, one control plane, two workers, Longhorn keeping three
-copies of everything, Calico underneath, and a Cloudflare Tunnel instead of a
-public load balancer, because my router owes the internet nothing.
+Three Ryzen mini-PCs sit in a cupboard in Münster. They run kubeadm on Ubuntu:
+one control plane, two workers, Longhorn with three replicas, Calico and a
+Cloudflare Tunnel. The router exposes no public load balancer.
 
-People ask why bother. The answer is that it's the only environment where I'm
-allowed to break things on purpose, at 11pm, with no customer on the other end.
-Every bad idea I've shipped at work was a good idea I'd already stress-tested at
-home — or a bad one I'd already learned to fear.
+I can break this cluster at 11pm without keeping a customer waiting. That makes
+it a useful place to test upgrades and failure modes before I meet them at work.
 
-Things this cluster has taught me that no managed offering would:
+The cluster has taught me a few specific lessons:
 
-- A rolling OS upgrade across all three nodes is a rite of passage. The last one
-  finished with zero data loss, which sounds like nothing and took everything.
-- Draining the control-plane node used to storm a little wake-on-LAN helper,
-  every single time, until it got scaled to zero first. It's documented now.
-  It's routine now. The first time, it wasn't.
-- AMD idle states can kernel-panic a perfectly healthy node at 3am. All three
-  nodes carry the C-state fix, and the panic hasn't come back. I didn't learn
-  that from a runbook; I learned it from journalctl.
+- The last rolling OS upgrade crossed all three nodes with no data loss.
+- Draining the control-plane node used to wake a small wake-on-LAN helper. I now
+  scale the helper to zero before maintenance.
+- AMD idle states caused a healthy node to panic at 3am. All three nodes now use
+  the C-state fix, and the panic has not returned.
 
-The homelab isn't a toy. It's the rehearsal room.
+I learned each of those from the logs, then added the fix to the runbook.

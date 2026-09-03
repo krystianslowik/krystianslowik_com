@@ -20,7 +20,7 @@ const {
   title, description, canonical,
   type = "website",
   image = new URL(site.meta.ogImage, site.meta.url).href,
-  imageAlt = `${site.identity.name} — ${site.meta.title.split("—").pop()?.trim() ?? "engineer"}`,
+  imageAlt = `${site.identity.name} | ${site.meta.title.split("|").pop()?.trim() ?? "engineer"}`,
   noindex = false,
   article,
 } = Astro.props;
@@ -28,7 +28,7 @@ const {
 const robots = noindex
   ? "noindex, nofollow"
   : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
-const THEME = "#161719"; // --color-bg (charcoal); matches the web manifest
+const THEME = "#f2f0ea"; // --color-bg oklch(0.955 0.008 92) in sRGB; matches the web manifest
 ---
 <title>{title}</title>
 <meta name="description" content={description} />

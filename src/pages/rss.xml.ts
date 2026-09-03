@@ -1,16 +1,14 @@
 import rss from "@astrojs/rss";
-import { getCollection } from "astro:content";
 import { site } from "@data/site";
+import { publishedPosts } from "@lib/writing";
 import type { APIContext } from "astro";
 
 // /rss.xml — the writing feed. Linked from every <head> via rel=alternate.
 export async function GET(context: APIContext) {
-  const posts = (await getCollection("writing", ({ data }) => !data.draft)).sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-  );
+  const posts = await publishedPosts();
   return rss({
-    title: "Krystian Słowik — writing",
-    description: "Notes on keeping systems boring: postmortems, homelab k8s, and the craft of reliability.",
+    title: site.writing.feedTitle,
+    description: site.writing.description,
     site: context.site ?? site.meta.url,
     items: posts.map((p) => ({
       title: p.data.title,

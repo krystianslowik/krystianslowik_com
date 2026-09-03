@@ -1,27 +1,34 @@
-@import "tailwindcss";
+/* Class detection is scoped to src/ — docs/ and design/ hold prose and
+   reference studies, and nothing outside src/ carries Tailwind classes. */
+@import "tailwindcss" source("../");
 
 /* Self-hosted fonts (no render-blocking Google Fonts call — honours the site's
-   own "no trackers, no third parties" claim). Same faces the old <link> loaded:
-   JetBrains Mono 400/500/600 + Newsreader italic (variable optical size). */
+   own "no trackers, no third parties" claim). JetBrains Mono 400/500/600 +
+   Newsreader roman + italic (variable optical size). */
 @import "@fontsource/jetbrains-mono/400.css";
 @import "@fontsource/jetbrains-mono/500.css";
 @import "@fontsource/jetbrains-mono/600.css";
 @import "@fontsource-variable/newsreader/opsz-italic.css";
+@import "@fontsource-variable/newsreader/opsz.css";
 
 /* ==========================================================================
-   Design tokens — dark engineering-minimal, ONE amber accent (OKLCH)
-   Exposed to Tailwind v4 via @theme so utilities like bg-bg / text-accent work.
+   Design tokens — "operator's handbook": warm paper, one ink, ONE burnt-amber
+   accent (the słowik's own ink, darkened to bite into paper). Exposed to
+   Tailwind v4 via @theme so utilities like bg-bg / text-accent work.
    ========================================================================== */
 @theme {
-  --color-bg: oklch(0.185 0.006 250);        /* charcoal base */
-  --color-elevated: oklch(0.215 0.006 250);  /* panels */
-  --color-border: oklch(0.30 0.006 250);     /* hairlines */
-  --color-fg: oklch(0.95 0.004 250);         /* primary text */
-  --color-fg-2: oklch(0.74 0.006 250);       /* secondary */
-  --color-muted: oklch(0.61 0.008 250);     /* muted / mono labels — L0.61 clears AA (4.9:1 bg, 4.6:1 cards), measured */
-  --color-accent: oklch(0.76 0.14 70);       /* the one amber */
-  --color-accent-hi: oklch(0.83 0.13 70);    /* hover */
-  --color-warning: oklch(0.70 0.15 40);      /* degraded only */
+  --color-bg: oklch(0.955 0.008 92);         /* paper */
+  --color-elevated: oklch(0.928 0.010 90);   /* slip cards — a shade under the sheet */
+  --color-border: oklch(0.80 0.012 88);      /* hairlines */
+  --color-fg: oklch(0.23 0.008 80);          /* ink */
+  --color-fg-2: oklch(0.37 0.010 82);        /* secondary ink */
+  --color-muted: oklch(0.50 0.012 86);       /* apparatus labels — clears AA on paper */
+  --color-accent: oklch(0.50 0.125 60);      /* burnt amber — AA on both paper stocks */
+  --color-accent-hi: oklch(0.43 0.110 60);   /* hover = deeper impression */
+  /* The one amber, lifted for the inverted ink panels — a derived state of
+     --color-accent, not a second colour. Static value first; the @supports
+     block below locks it to the accent's hue where relative colour exists. */
+  --color-accent-on-ink: oklch(0.76 0.14 60);
 
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -33,10 +40,17 @@
 
   /* Interaction grammar — ONE speed, ONE curve for every hover/press/focus
      transition (Tailwind's transition-* utilities read these defaults).
-     Fast ease-out reads as "the UI answered", not "the UI animated". */
+     Fast ease-out reads as "the UI answered", not "the UI animated".
+     Shadows Tailwind's own --ease-out on purpose: the ease-out utility IS this
+     curve. Do not add ease-in / ease-in-out classes; they would mix curve
+     families. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --default-transition-duration: 140ms;
-  --default-transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-timing-function: var(--ease-out);
+}
+
+@supports (color: oklch(from red l c h)) {
+  :root { --color-accent-on-ink: oklch(from var(--color-accent) 0.76 0.14 h); }
 }
 
 /* ==========================================================================
@@ -55,12 +69,28 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   /* clip (not hidden): kills stray horizontal scroll on small screens without
-     creating a scroll container, so position: sticky in the nav keeps working */
+     turning body into a scroll container (SheetFrame is position: fixed and
+     must stay viewport-anchored) */
   overflow-x: clip;
-  /* viewport-fit=cover (Base.astro) — keep gutters out of notch/home-bar zones */
+  /* viewport-fit=cover — keep gutters out of notch/home-bar zones */
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
+
+/* Paper grain — one pre-rendered 128px tile of alpha noise, laid over
+   everything at a few percent. A fixed pseudo-element, never a live
+   feTurbulence filter (that is computed per pixel, per paint). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: url("/grain.png") repeat 0 0 / 128px 128px;
+  opacity: 0.05;
+}
+/* Grain is screen-only; a fixed pseudo-element would repeat on every printed page. */
+@media print { body::before { display: none; } }
 
 /* Linear-normalized interaction feel: the arrow is the cursor for the whole
    UI (pointer/hand on nothing — app grammar, not document grammar), taps are
@@ -71,10 +101,10 @@ a, button, [role="button"], summary, label { cursor: default; }
 a, button, [role="button"], summary { touch-action: manipulation; }
 button, summary { -webkit-user-select: none; user-select: none; }
 
-::selection { background: oklch(0.76 0.14 70 / 0.28); color: var(--color-fg); }
+::selection { background: color-mix(in oklab, var(--color-accent) 26%, transparent); color: var(--color-fg); }
 
 ::-webkit-scrollbar { width: 11px; height: 11px; }
-::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 0.10); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--color-fg) 18%, transparent); border-radius: 2px; }
 ::-webkit-scrollbar-track { background: transparent; }
 
 :focus-visible {
@@ -94,22 +124,75 @@ button, summary { -webkit-user-select: none; user-select: none; }
   outline: none;
 }
 
-a { color: inherit; text-decoration: none; }
+a { text-decoration: none; }
 
-/* Mono label — section indices "[01] now", telemetry keys */
-.mono-label {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  color: var(--color-muted);
-  font-variant-numeric: tabular-nums;
+/* Apparatus + label styles live in @layer components so Tailwind utilities
+   (text-accent, hidden, md:inline-block…) can always override them — the
+   unlayered versions of these silently beat every utility. */
+@layer components {
+  /* Mono label — section indices "§01", spec keys, figure captions */
+  .mono-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* Display voice — Newsreader roman. Structure (the name, section titles,
+     subheads, the big email) is set in this; titles of pieces stay italic.
+     Serif capitals need far less negative tracking than the old grotesk. */
+  .display {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+  }
+
+  /* SheetFrame's frosted marginalia tiles — the site's only glass. Solid enough
+     to carry text on their own; the blur is a hint, not a material. */
+  .frame-tile {
+    background: color-mix(in oklab, var(--color-bg) 88%, transparent);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .frame-tile { background: var(--color-bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  }
+
+  /* Long-form reading uses the serif */
+  .prose { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.7; color: var(--color-fg); }
+  .prose em, .prose i { font-style: italic; }
+
+  /* Caution tape — a single strip above things that bite back. */
+  .hazard {
+    height: 7px;
+    background-image: repeating-linear-gradient(
+      -55deg,
+      var(--color-accent) 0 9px,
+      transparent 9px 18px
+    );
+    opacity: 0.85;
+  }
+
 }
-.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
-/* Long-form reading uses the serif */
-.prose { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.7; color: var(--color-fg); }
-.prose em, .prose i { font-style: italic; }
+/* Hero tape — one marquee along the sheet's bottom edge. Runs only when motion
+   is allowed; reduced motion leaves the first copy static in view. */
+@keyframes tape-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.tape-track {
+  display: inline-flex;
+  white-space: nowrap;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tape-track { animation: tape-scroll 32s linear infinite; }
+}
 
 /* Scroll reveals. Only ARMED (hidden) once an inline head script adds
    .reveal-armed, and only when motion is allowed — so crawlers and no-JS
@@ -117,7 +200,7 @@ a { color: inherit; text-decoration: none; }
 html.reveal-armed [data-reveal] {
   opacity: 0;
   transform: translateY(16px);
-  transition: opacity 0.55s var(--ease-out-quint), transform 0.55s var(--ease-out-quint);
+  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
 }
 html.reveal-armed [data-reveal].revealed,
 html.reveal-fallback [data-reveal] {
@@ -126,9 +209,11 @@ html.reveal-fallback [data-reveal] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* fewer and gentler, not zero: keyframe motion goes, movement transitions go,
+     the 140ms colour/opacity answers stay (they aid comprehension, not motion) */
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
   }
+  html.reveal-armed [data-reveal] { transition: none; }
 }

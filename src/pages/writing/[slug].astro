@@ -1,14 +1,13 @@
 ---
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
 import Base from "../../layouts/Base.astro";
-import Nav from "@components/Nav.astro";
+import SheetFrame from "@components/SheetFrame.astro";
 import { site } from "@data/site";
 import { postSchema } from "@lib/schema";
+import { publishedPosts } from "@lib/writing";
 
 export async function getStaticPaths() {
-  const posts = (await getCollection("writing", ({ data }) => !data.draft)).sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-  );
+  const posts = await publishedPosts();
   return posts.map((post, i) => ({
     params: { slug: post.id },
     props: { post, newer: posts[i - 1] ?? null, older: posts[i + 1] ?? null },
@@ -33,15 +32,14 @@ const schema = postSchema({
 });
 ---
 <Base
-  title={`${post.data.title} — Krystian Słowik`}
+  title={`${post.data.title} | Krystian Słowik`}
   description={post.data.blurb}
   type="article"
-  imageAlt={post.data.title}
   article={{ publishedTime: published, modifiedTime: modified, tags: post.data.tags }}
   schema={schema}
 >
-  <Nav />
-  <main id="content" class="mx-auto max-w-[720px] px-4 py-14 sm:px-6 sm:py-20">
+  <SheetFrame />
+  <main id="content" class="mx-auto max-w-[720px] px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
     <p class="mono-label">
       <a href="/#writing" class="inline-block py-1 transition-colors hover:text-accent active:text-accent">← writing</a>
     </p>

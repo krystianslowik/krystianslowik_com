@@ -1,0 +1,51 @@
+---
+import { site } from "@data/site";
+import { publishedPosts } from "@lib/writing";
+const posts = await publishedPosts();
+const ym = (date: Date) => date.toISOString().slice(0, 7);
+---
+
+<section class="border-b-2 border-fg bg-elevated">
+  <div class="mx-auto max-w-[1280px] px-4 py-14 sm:px-6 sm:py-28">
+    <header class="border-t-2 border-fg pt-4" data-perch="rule" data-reveal>
+      <p class="mono-label text-accent">{site.sections.record.index}</p>
+      <h2 class="display mt-3 text-[clamp(3rem,10vw,8rem)] uppercase leading-[0.85]">{site.sections.record.title}</h2>
+    </header>
+
+    <div class="mt-10 grid gap-12 sm:mt-16 sm:gap-16 lg:grid-cols-[1.2fr_.8fr] lg:gap-20">
+      <div id="experience">
+        <div class="flex items-baseline justify-between border-b-2 border-fg pb-3">
+          <h3 class="display text-xl uppercase tracking-[0.02em]">{site.experience.lead}</h3>
+          <span class="mono-label">{site.experience.meta}</span>
+        </div>
+        <ol data-reveal>
+          {site.experience.items.map((entry) => (
+            <li class="grid gap-x-4 gap-y-1 border-b border-fg/35 py-4 sm:grid-cols-[82px_1fr]">
+              <span class="font-mono text-sm tabular-nums text-accent">{entry.date}</span>
+              <span class="text-fg-2" data-perch={entry.head ? "rule" : undefined}>
+                {entry.role}{entry.head && <span class="mono-label ml-2 normal-case text-accent">HEAD</span>}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div id="writing" class="scroll-mt-20">
+        <a href="/writing/" class="group flex min-h-11 items-baseline justify-between border-b-2 border-fg pb-3 transition-colors hover:text-accent active:text-accent">
+          <h3 class="display text-xl uppercase tracking-[0.02em]">{site.writing.lead}</h3>
+          <span class="mono-label transition-colors group-hover:text-accent group-active:text-accent">archive →</span>
+        </a>
+        <ul data-reveal>
+          {posts.map((post) => (
+            <li class="border-b border-fg/35">
+              <a href={`/writing/${post.id}/`} class="group block py-5">
+                <h4 class="font-serif text-2xl italic leading-tight transition-colors group-hover:text-accent group-active:text-accent" data-perch="rule">{post.data.title}</h4>
+                <p class="mono-label mt-2">{ym(post.data.pubDate)}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
